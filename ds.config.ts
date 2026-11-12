@@ -7,7 +7,7 @@ export interface DsConfig {
   generatedDir: string;
   playgroundDir: string;
   pagesDir: string;
-  layoutComponent: string;
+  layoutComponent?: string;
   knownHallucinations: Record<string, string>;
 }
 

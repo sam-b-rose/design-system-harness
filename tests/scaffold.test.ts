@@ -3,14 +3,14 @@ import { existsSync, rmSync } from "node:fs";
 import { test } from "node:test";
 import { resolveTargets, runCheck } from "../cli/lib/check";
 import { fromRoot } from "../cli/lib/paths";
-import { listTemplates, renderTemplate, scaffold } from "../cli/lib/scaffold";
+import { listTemplates, nameParts, scaffold } from "../cli/lib/scaffold";
 
 const TEMP_DIR = "evals/.tmp/scaffold";
 
 test("component names are PascalCase and end with the template kind", () => {
-  assert.equal(renderTemplate("form", "login").componentName, "LoginForm");
-  assert.equal(renderTemplate("form", "LoginForm").componentName, "LoginForm");
-  assert.equal(renderTemplate("page", "user-settings").componentName, "UserSettingsPage");
+  assert.deepEqual(nameParts("form", "login"), { componentName: "LoginForm", title: "Login" });
+  assert.deepEqual(nameParts("form", "LoginForm"), { componentName: "LoginForm", title: "Login" });
+  assert.deepEqual(nameParts("page", "user-settings"), { componentName: "UserSettingsPage", title: "User settings" });
 });
 
 test("every template scaffolds a file that passes ds check, and never overwrites", async () => {

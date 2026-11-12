@@ -25,11 +25,17 @@ function toWords(name: string): string[] {
 
 const capitalize = (word: string) => word[0].toUpperCase() + word.slice(1);
 
-export function renderTemplate(kind: string, name: string): { componentName: string; source: string } {
+export function nameParts(kind: string, name: string): { componentName: string; title: string } {
   const words = toWords(name);
   if (words.at(-1) !== kind) words.push(kind);
-  const componentName = words.map(capitalize).join("");
-  const title = capitalize(words.slice(0, -1).join(" ") || kind);
+  return {
+    componentName: words.map(capitalize).join(""),
+    title: capitalize(words.slice(0, -1).join(" ") || kind),
+  };
+}
+
+export function renderTemplate(kind: string, name: string): { componentName: string; source: string } {
+  const { componentName, title } = nameParts(kind, name);
   const source = readFileSync(join(TEMPLATES_DIR, `${kind}.tsx`), "utf8")
     .replace(TITLE_PLACEHOLDER, title)
     .replace(new RegExp(`\\b${COMPONENT_PLACEHOLDER}\\b`, "g"), componentName);

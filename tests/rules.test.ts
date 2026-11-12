@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import parser from "@typescript-eslint/parser";
 import { RuleTester } from "eslint";
+import config from "../ds.config";
+import { exportNames } from "../cli/lib/exports";
 import { onePrimaryButton } from "../lint/audit/one-primary-button";
 import { textfieldLabel } from "../lint/audit/textfield-label";
 import { noRawValues } from "../lint/rules/no-raw-values";
@@ -11,27 +13,31 @@ const ruleTester = new RuleTester({
   languageOptions: { parser, parserOptions: { ecmaFeatures: { jsx: true } } },
 });
 
+const { alias, cliName, knownHallucinations, layoutComponent } = config;
+
 test("ds/no-unknown-imports", () => {
   ruleTester.run("no-unknown-imports", noUnknownImports, {
     valid: [
-      `import { Button, Stack, token, type ButtonProps } from "@ds";`,
-      `import { Box } from "another-library";`,
+      `import { ${exportNames().join(", ")} } from "${alias}";`,
+      `import { Widget } from "another-library";`,
     ],
     invalid: [
+      ...Object.entries(knownHallucinations).map(([name, replacement]) => ({
+        code: `import { ${name} } from "${alias}";`,
+        errors: [
+          { message: `${name} is not exported by ${alias}. Use ${replacement} (see: ${cliName} docs get ${replacement}).` },
+        ],
+      })),
       {
-        code: `import { Box } from "@ds";`,
-        errors: [{ message: "Box is not exported by @ds. Use Stack (see: ds docs get Stack)." }],
+        code: `import { Widget } from "${alias}";`,
+        errors: [{ message: new RegExp(`^Widget is not exported by ${alias}\\. Real exports: .* \\(see: ${cliName} exports\\)\\.$`) }],
       },
       {
-        code: `import { Widget } from "@ds";`,
-        errors: [{ message: /^Widget is not exported by @ds\. Real exports: .*Stack.* \(see: ds exports\)\.$/ }],
-      },
-      {
-        code: `import * as DS from "@ds";`,
+        code: `import * as DS from "${alias}";`,
         errors: [{ message: /^Use named imports/ }],
       },
       {
-        code: `import { Button } from "@ds/components/Button/Button";`,
+        code: `import { Widget } from "${alias}/components/Widget";`,
         errors: [{ message: /^Deep import/ }],
       },
     ],
@@ -66,8 +72,8 @@ test("ds/no-raw-values", () => {
   });
 });
 
-test("ds/prefer-stack", () => {
-  const message = "Raw <div> with flex, grid or gap styling. Use Stack for layout and spacing (see: ds docs get Stack).";
+test("ds/prefer-stack", { skip: !layoutComponent }, () => {
+  const message = `Raw <div> with flex, grid or gap styling. Use ${layoutComponent} for layout and spacing (see: ${cliName} docs get ${layoutComponent}).`;
   ruleTester.run("prefer-stack", preferStack, {
     valid: [
       `const a = <Stack gap="md"><p>text</p></Stack>;`,

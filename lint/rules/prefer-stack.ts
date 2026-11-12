@@ -41,6 +41,7 @@ export const preferStack: Rule.RuleModule = {
   meta: { type: "problem", schema: [] },
   create(context) {
     const layout = config.layoutComponent;
+    if (!layout) return {};
     return {
       JSXOpeningElement(node: Rule.Node) {
         const element = node as unknown as JsxOpeningElement;
