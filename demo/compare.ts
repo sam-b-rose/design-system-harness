@@ -21,7 +21,8 @@ const VARIANTS: { variant: Variant; title: string; setup: string }[] = [
   {
     variant: "baseline",
     title: "Baseline",
-    setup: "The design system source and the playground only. No `AGENTS.md`, no skill, no `ds` CLI, no generated docs.",
+    setup:
+      "The playground, with the design system installed as a compiled package in `node_modules` (JavaScript and type declarations). No design system source, no `AGENTS.md`, no skill, no `ds` CLI, no generated docs.",
   },
   {
     variant: "toolkit",

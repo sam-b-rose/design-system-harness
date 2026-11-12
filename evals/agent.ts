@@ -1,10 +1,12 @@
 import { execFileSync, spawn } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
+import ts from "typescript";
 import config from "../ds.config";
 import { resolveTargets, runCheck, type Violation } from "../cli/lib/check";
 import { fromRoot, root } from "../cli/lib/paths";
+import { loadCompilerOptions } from "../cli/lib/typescript";
 import type { Task } from "./run";
 
 export type Variant = "baseline" | "toolkit";
@@ -22,7 +24,8 @@ export interface Score {
   violations: Violation[];
 }
 
-const BASELINE_PATHS = ["packages/", "playground/", "tsconfig.json"];
+const BASELINE_PATHS = ["playground/"];
+const BASELINE_PACKAGE = "starter-ds";
 const TOOLKIT_EXCLUDED = ["demo/", "evals/", "tests/", ".github/", "scripts/reset/", "README.md"];
 const AGENT_TIMEOUT_MS = 10 * 60 * 1000;
 const SCORING_DIR = "evals/.tmp/agent";
@@ -31,6 +34,55 @@ function trackedFiles(): string[] {
   return execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8" })
     .split("\n")
     .filter((file) => file && existsSync(fromRoot(file)));
+}
+
+function linkDependencies(workspace: string): void {
+  const modules = join(workspace, "node_modules");
+  mkdirSync(modules);
+  for (const entry of readdirSync(fromRoot("node_modules"))) {
+    symlinkSync(fromRoot("node_modules", entry), join(modules, entry));
+  }
+}
+
+function installCompiledDesignSystem(workspace: string): void {
+  const entry = fromRoot(config.entry);
+  const sourceDir = dirname(entry);
+  const packageDir = join(workspace, "node_modules", BASELINE_PACKAGE);
+  const program = ts.createProgram([entry], {
+    ...loadCompilerOptions(),
+    noEmit: false,
+    allowImportingTsExtensions: false,
+    declaration: true,
+    rootDir: sourceDir,
+    outDir: join(packageDir, "dist"),
+  });
+  program.emit();
+
+  const stylesheets = trackedFiles().filter((file) => fromRoot(file).startsWith(sourceDir) && file.endsWith(".css"));
+  for (const file of stylesheets) {
+    cpSync(fromRoot(file), join(packageDir, "dist", relative(sourceDir, fromRoot(file))));
+  }
+  const manifest = { name: BASELINE_PACKAGE, version: "1.0.0", type: "module", main: "dist/index.js", types: "dist/index.d.ts" };
+  writeFileSync(join(packageDir, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+}
+
+function writeBaselineProject(workspace: string): void {
+  const { dependencies, devDependencies } = JSON.parse(readFileSync(fromRoot("package.json"), "utf8"));
+  const manifest = {
+    name: "app",
+    private: true,
+    type: "module",
+    scripts: { typecheck: "tsc --noEmit" },
+    dependencies: { ...dependencies, [BASELINE_PACKAGE]: "1.0.0" },
+    devDependencies,
+  };
+  writeFileSync(join(workspace, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+
+  const tsconfig = JSON.parse(readFileSync(fromRoot("tsconfig.json"), "utf8"));
+  tsconfig.compilerOptions.paths = { [config.alias]: [`./node_modules/${BASELINE_PACKAGE}/dist/index.d.ts`] };
+  tsconfig.include = [config.playgroundDir];
+  tsconfig.exclude = ["node_modules"];
+  writeFileSync(join(workspace, "tsconfig.json"), `${JSON.stringify(tsconfig, null, 2)}\n`);
 }
 
 export function createWorkspace(variant: Variant): string {
@@ -43,17 +95,16 @@ export function createWorkspace(variant: Variant): string {
     mkdirSync(dirname(join(workspace, file)), { recursive: true });
     cpSync(fromRoot(file), join(workspace, file));
   }
+  linkDependencies(workspace);
 
   if (variant === "baseline") {
-    const { dependencies, devDependencies } = JSON.parse(readFileSync(fromRoot("package.json"), "utf8"));
-    const manifest = { name: "app", private: true, type: "module", dependencies, devDependencies };
-    writeFileSync(join(workspace, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
+    installCompiledDesignSystem(workspace);
+    writeBaselineProject(workspace);
   } else {
     for (const copy of config.agent.instructionFileCopies) {
       cpSync(fromRoot("AGENTS.md"), join(workspace, copy));
     }
   }
-  symlinkSync(fromRoot("node_modules"), join(workspace, "node_modules"));
   return workspace;
 }
 

@@ -109,6 +109,6 @@ CI runs `docs:check`, `typecheck`, `lint`, `test` and `evals`, plus a second job
 
 ## Before and after
 
-`pnpm demo:compare` gives the same prompt to an agent in two temporary copies of the repo: a baseline with only the design system source and the playground, and the full toolkit. It scores both with `ds check` and writes the reports to [demo/results/](demo/results/README.md). One real run is committed there.
+`pnpm demo:compare` gives the same prompt to an agent in two temporary copies of the repo: a baseline where the design system is only a compiled package in `node_modules`, the way most apps consume one, and the full toolkit. It scores both with `ds check` and writes the reports to [demo/results/](demo/results/README.md). One real run is committed there.
 
 The agent command is set in `ds.config.ts` under `agent`. It defaults to the `claude` CLI.
