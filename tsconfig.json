@@ -15,6 +15,6 @@
       "@ds": ["./packages/ds/src/index.ts"]
     }
   },
-  "include": ["ds.config.ts", "vite.config.ts", "packages", "cli", "lint", "scripts", "tests", "evals", "playground"],
+  "include": ["ds.config.ts", "vite.config.ts", "packages", "cli", "lint", "mcp", "scripts", "tests", "evals", "demo", "playground"],
   "exclude": ["node_modules", "dist", "evals/fixtures/bad", "evals/.tmp", "scripts/reset"]
 }
