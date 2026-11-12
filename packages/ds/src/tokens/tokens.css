@@ -3,10 +3,15 @@
   --color-bg-page: #f6f7f9;
   --color-bg-surface: #ffffff;
   --color-bg-primary: #2f5bea;
+  --color-bg-info-subtle: #eaf0ff;
+  --color-bg-success-subtle: #e7f6ec;
+  --color-bg-danger-subtle: #fdecea;
   --color-text-default: #16181d;
   --color-text-muted: #5c6370;
   --color-text-on-primary: #ffffff;
   --color-text-danger: #b42318;
+  --color-text-info: #1d3fae;
+  --color-text-success: #17663a;
   --color-border-default: #d0d5dd;
   --color-border-danger: #b42318;
   --space-xs: 4px;

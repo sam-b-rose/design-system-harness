@@ -11,7 +11,10 @@
 
 ## Components
 
+- [Alert](components/alert.md): A short, colored message that tells the user about the result of an action or the state of the page.
 - [Button](components/button.md): Triggers an action, such as submitting a form or opening a dialog.
+- [Card](components/card.md): A bordered surface that groups related content, such as a form or a settings section.
+- [Heading](components/heading.md): A page or section title. Renders the matching `<h1>` to `<h3>` element.
 - [Stack](components/stack.md): Lays out children in a row or column with consistent spacing between them. `Stack` is the only layout primitive in this design system.
 - [TextField](components/textfield.md): A single-line text input with a built-in label and error message.
 
@@ -19,9 +22,9 @@
 
 This is the complete list of what `@ds` exports.
 
-- Components: `Button`, `Stack`, `TextField`
+- Components: `Alert`, `Button`, `Card`, `Heading`, `Stack`, `TextField`
 - Functions: `token`
-- Types: `ButtonProps`, `SpaceToken`, `StackProps`, `TextFieldProps`, `TokenPath`
+- Types: `AlertProps`, `ButtonProps`, `CardProps`, `HeadingProps`, `SpaceToken`, `StackProps`, `TextFieldProps`, `TokenPath`
 
 ## Not exported
 

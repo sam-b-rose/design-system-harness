@@ -9,10 +9,15 @@
 | `token("color.bg.page")` | `--color-bg-page` | `#f6f7f9` | color |
 | `token("color.bg.surface")` | `--color-bg-surface` | `#ffffff` | color |
 | `token("color.bg.primary")` | `--color-bg-primary` | `#2f5bea` | color |
+| `token("color.bg.infoSubtle")` | `--color-bg-info-subtle` | `#eaf0ff` | color |
+| `token("color.bg.successSubtle")` | `--color-bg-success-subtle` | `#e7f6ec` | color |
+| `token("color.bg.dangerSubtle")` | `--color-bg-danger-subtle` | `#fdecea` | color |
 | `token("color.text.default")` | `--color-text-default` | `#16181d` | color |
 | `token("color.text.muted")` | `--color-text-muted` | `#5c6370` | color |
 | `token("color.text.onPrimary")` | `--color-text-on-primary` | `#ffffff` | color |
 | `token("color.text.danger")` | `--color-text-danger` | `#b42318` | color |
+| `token("color.text.info")` | `--color-text-info` | `#1d3fae` | color |
+| `token("color.text.success")` | `--color-text-success` | `#17663a` | color |
 | `token("color.border.default")` | `--color-border-default` | `#d0d5dd` | color |
 | `token("color.border.danger")` | `--color-border-danger` | `#b42318` | color |
 | `token("space.xs")` | `--space-xs` | `4px` | space |

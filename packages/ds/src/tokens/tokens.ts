@@ -4,12 +4,17 @@ export const tokens = {
       page: "#f6f7f9",
       surface: "#ffffff",
       primary: "#2f5bea",
+      infoSubtle: "#eaf0ff",
+      successSubtle: "#e7f6ec",
+      dangerSubtle: "#fdecea",
     },
     text: {
       default: "#16181d",
       muted: "#5c6370",
       onPrimary: "#ffffff",
       danger: "#b42318",
+      info: "#1d3fae",
+      success: "#17663a",
     },
     border: {
       default: "#d0d5dd",
