@@ -17,7 +17,8 @@
     "lint": "tsx cli/ds.ts check",
     "test": "tsx --test tests/*.test.ts",
     "evals": "tsx evals/run.ts",
-    "starter:reset": "tsx scripts/starter-reset.ts"
+    "starter:reset": "tsx scripts/starter-reset.ts",
+    "demo:compare": "tsx demo/compare.ts"
   },
   "dependencies": {
     "react": "^19.3.1",
