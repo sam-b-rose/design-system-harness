@@ -10,6 +10,7 @@ const SAMPLE_CONTENT = [
   "cli/templates",
   "evals/tasks",
   "evals/fixtures",
+  "evals/results",
   "demo/results",
 ];
 
