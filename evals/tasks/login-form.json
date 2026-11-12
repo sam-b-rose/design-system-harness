@@ -1,0 +1,11 @@
+{
+  "id": "login-form",
+  "prompt": "Build a login form with an email field, a password field and a primary \"Sign in\" button. Export it as LoginForm.",
+  "target": "playground/src/pages/LoginForm.tsx",
+  "checks": ["tsc", "ds/no-unknown-imports", "ds/no-raw-values"],
+  "good": ["good/login-form.tsx"],
+  "bad": [
+    { "fixture": "bad/login-form.unknown-import.tsx", "rule": "ds/no-unknown-imports" },
+    { "fixture": "bad/login-form.raw-values.tsx", "rule": "ds/no-raw-values" }
+  ]
+}
