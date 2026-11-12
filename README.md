@@ -21,7 +21,7 @@ The loop is drawn in [docs/loop.md](docs/loop.md).
 | 1. Machine-readable docs | `scripts/build-docs.ts` → `docs/generated/` | `m1-first-loop`, `m2-skill-and-retrieval` |
 | 2. Instruction file | `AGENTS.md`, `skills/design-system/` | `m1-first-loop`, `m2-skill-and-retrieval` |
 | 3. Retrieval path | `cli/`, optional `mcp/` | `m2-skill-and-retrieval`, `m5-stretch` |
-| 4. Generate → check → fix | `cli/templates/`, `cli/lib/check.ts`, `lint/` | `m3-scaffold-and-audit` |
+| 4. Generate → check → fix | `cli/templates/`, `cli/lib/check.ts`, `lint/`, `cli/hook.ts` | `m3-scaffold-and-audit` |
 | 5. Regression suite | `evals/`, `tests/`, `.github/workflows/ci.yml` | `m4-evals-and-ci`, `m5-stretch` |
 
 `ds.config.ts` ties them together. It holds the import alias, the CLI name and the known hallucinations, and the lint rules, generated docs and evals all read from it.
@@ -149,6 +149,12 @@ pnpm exec playwright install chromium
 
 Limits: it does not compare screenshots against a reference, so it catches pages that break, not pages that look wrong. A page file must export a component with the same name as the file, which `ds add` does for you.
 
+### The edit hook
+
+`AGENTS.md` tells the agent to run `ds check`, but nothing makes it. `.claude/settings.json` adds a Claude Code `PostToolUse` hook that runs `cli/hook.ts` after every `Write`, `Edit` or `MultiEdit`. It checks only the edited file, and only inside `playground/`. A clean file produces no output. A file with problems sends the `ds check` report back to the agent with exit code 2, so it fixes them in the same session. Each run takes about 1.5 seconds.
+
+The hook reads Claude Code's hook input. For another agent, call `runHook` from `cli/hook.ts` with that agent's hook payload, or run `pnpm ds check <file>` from its hook.
+
 ## Optional: MCP
 
 `mcp/server.ts` exposes the four read-only retrieval commands as MCP tools: `docs_get`, `docs_search`, `exports` and `tokens_list`. Each tool calls the same library function as the CLI command, so the two cannot drift. The CLI is the primary path; use MCP for agents without a shell.
@@ -189,7 +195,7 @@ One run of each combination is committed in `evals/results/`:
 | `claude-fable-5-2` (the CLI default) | 5 of 5 | 5 of 5 | none |
 | `claude-haiku-5-5` | 5 of 5 | 3 of 5 | `ds/prefer-stack` once (a flex `div` used to center content), `ds/no-raw-values` twice (`maxWidth` of `420px` and `400px`) |
 
-Read these as single runs, not rates. Agents are not deterministic, and five tasks on a six-component design system is a small sample. Neither model imported a component that does not exist. The two `no-raw-values` failures are container widths, which this design system has no token for.
+These runs predate the edit hook, so the toolkit agents ran `ds check` only because the instructions told them to. Read these as single runs, not rates. Agents are not deterministic, and five tasks on a six-component design system is a small sample. Neither model imported a component that does not exist. The two `no-raw-values` failures are container widths, which this design system has no token for.
 
 ## Before and after
 
@@ -197,5 +203,5 @@ Read these as single runs, not rates. Agents are not deterministic, and five tas
 
 ## Further reading
 
-- Robin Di Capua, [A design system harness](https://brandstructure.design/articles/a-design-system-harness/) (branDStructure, 7 November 2026). It describes a harness that guides, constrains and verifies an agent. In this repo, `AGENTS.md` and `llms.txt` are the map, the skill is the recipe, the generated docs are the ingredients, and the `ds` CLI and MCP server are the equipment. `ds check` is the deterministic tier of verification, and the agent evals compare against a baseline.
+- Robin Di Capua, [A design system harness](https://brandstructure.design/articles/a-design-system-harness/) (branDStructure, 7 November 2026). It describes a harness that guides, constrains and verifies an agent. In this repo, `AGENTS.md` and `llms.txt` are the map, the skill is the recipe, the generated docs are the ingredients, and the `ds` CLI, MCP server and edit hook are the equipment. `ds check` is the deterministic tier of verification, and the agent evals compare against a baseline.
 - Kaelig Deloumeau-Prigent, [State of AI in Design Systems](https://state-of-ai-in-design-systems.netlify.app/) (July 2026 snapshot, CC BY 4.0). It surveys how 21 design systems ship tooling for agents. This repo follows several of its findings: docs compiled from the same sources as human docs, short instruction files written as rules with an allow-list, tool-gating through the CLI, and validation loops that make the agent fix failures.
