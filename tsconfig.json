@@ -16,5 +16,5 @@
     }
   },
   "include": ["ds.config.ts", "vite.config.ts", "packages", "cli", "lint", "scripts", "tests", "evals", "playground"],
-  "exclude": ["node_modules", "dist", "evals/fixtures/bad", "evals/.tmp"]
+  "exclude": ["node_modules", "dist", "evals/fixtures/bad", "evals/.tmp", "scripts/reset"]
 }

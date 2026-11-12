@@ -16,12 +16,12 @@ export function formatExports(): string {
   return [
     `Everything ${config.alias} exports. Nothing else exists.`,
     "",
-    `Components: ${exportNames("component").join(", ")}`,
+    `Components: ${exportNames("component").join(", ") || "none yet"}`,
     `Functions:  ${exportNames("value").join(", ")}`,
     `Types:      ${exportNames("type").join(", ")}`,
     "",
     "Not exported (common mistakes):",
-    ...notExported,
+    ...(notExported.length > 0 ? notExported : ["  none listed in ds.config.ts"]),
     "",
     `Read a component's docs before using it: ${config.cliName} docs get <Component>`,
   ].join("\n");
