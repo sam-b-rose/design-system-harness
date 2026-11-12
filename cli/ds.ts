@@ -2,6 +2,7 @@ import config from "../ds.config";
 import { formatReport, resolveTargets, runCheck } from "./lib/check";
 import { getComponentDoc } from "./lib/docs";
 import { formatExports, formatTokens, type TextResult } from "./lib/format";
+import { listTemplates, scaffold } from "./lib/scaffold";
 import { formatSearch } from "./lib/search";
 
 const cli = config.cliName;
@@ -12,7 +13,8 @@ const USAGE = `Usage: ${cli} <command>
   ${cli} docs search <query>           Find the docs sections that best match a query
   ${cli} exports                       List everything ${config.alias} exports
   ${cli} tokens list [--category <c>]  List design tokens
-  ${cli} check [path...]               Type-check and lint files (default: ${config.playgroundDir}/)
+  ${cli} add <${listTemplates().join("|")}> <name>          Create a starting file in ${config.pagesDir}/
+  ${cli} check [path...]               Type-check, lint and audit files (default: ${config.playgroundDir}/)
 
 Run it through pnpm: pnpm ${cli} <command>`;
 
@@ -53,6 +55,11 @@ async function main(args: string[]): Promise<void> {
     const flag = rest.indexOf("--category");
     if (flag !== -1 && !rest[flag + 1]) fail(`Missing value for --category.\n\n${USAGE}`, 2);
     print(formatTokens(flag === -1 ? undefined : rest[flag + 1]));
+    return;
+  }
+
+  if (command === "add") {
+    print(scaffold(rest[0], rest[1]));
     return;
   }
 

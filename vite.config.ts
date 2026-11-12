@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
-import config from "./ds.config";
+import config from "./ds.config.ts";
 
 export default defineConfig({
   root: config.playgroundDir,
