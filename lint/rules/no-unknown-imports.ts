@@ -9,7 +9,7 @@ function notExportedMessage(name: string): string {
     return `${prefix} Use ${replacement} (see: ${config.cliName} docs get ${replacement}).`;
   }
   const real = [...exportNames("component"), ...exportNames("value")].join(", ");
-  return `${prefix} Real exports: ${real}.`;
+  return `${prefix} Real exports: ${real} (see: ${config.cliName} exports).`;
 }
 
 export const noUnknownImports: Rule.RuleModule = {

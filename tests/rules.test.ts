@@ -21,7 +21,7 @@ test("ds/no-unknown-imports", () => {
       },
       {
         code: `import { Widget } from "@ds";`,
-        errors: [{ message: /^Widget is not exported by @ds\. Real exports: .*Stack/ }],
+        errors: [{ message: /^Widget is not exported by @ds\. Real exports: .*Stack.* \(see: ds exports\)\.$/ }],
       },
       {
         code: `import * as DS from "@ds";`,

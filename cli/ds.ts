@@ -1,19 +1,29 @@
 import config from "../ds.config";
 import { formatReport, resolveTargets, runCheck } from "./lib/check";
 import { getComponentDoc } from "./lib/docs";
+import { formatExports, formatTokens, type TextResult } from "./lib/format";
+import { formatSearch } from "./lib/search";
 
 const cli = config.cliName;
 
 const USAGE = `Usage: ${cli} <command>
 
-  ${cli} docs get <Component>   Print a component's docs: props, examples, Do/Don't
-  ${cli} check [path...]        Type-check and lint files (default: ${config.playgroundDir}/)
+  ${cli} docs get <Component>          Print a component's docs: props, examples, Do/Don't
+  ${cli} docs search <query>           Find the docs sections that best match a query
+  ${cli} exports                       List everything ${config.alias} exports
+  ${cli} tokens list [--category <c>]  List design tokens
+  ${cli} check [path...]               Type-check and lint files (default: ${config.playgroundDir}/)
 
 Run it through pnpm: pnpm ${cli} <command>`;
 
 function fail(message: string, exitCode: number): never {
   console.error(message);
   process.exit(exitCode);
+}
+
+function print(result: TextResult): void {
+  if (!result.ok) fail(result.message, 1);
+  console.log(result.text);
 }
 
 async function main(args: string[]): Promise<void> {
@@ -24,6 +34,25 @@ async function main(args: string[]): Promise<void> {
     const result = getComponentDoc(rest[1]);
     if (!result.ok) fail(result.message, 1);
     console.log(result.markdown.trimEnd());
+    return;
+  }
+
+  if (command === "docs" && rest[0] === "search") {
+    const query = rest.slice(1).join(" ");
+    if (!query) fail(`Missing search query.\n\n${USAGE}`, 2);
+    print(formatSearch(query));
+    return;
+  }
+
+  if (command === "exports") {
+    console.log(formatExports());
+    return;
+  }
+
+  if (command === "tokens" && rest[0] === "list") {
+    const flag = rest.indexOf("--category");
+    if (flag !== -1 && !rest[flag + 1]) fail(`Missing value for --category.\n\n${USAGE}`, 2);
+    print(formatTokens(flag === -1 ? undefined : rest[flag + 1]));
     return;
   }
 
