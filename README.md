@@ -193,4 +193,4 @@ Read these as single runs, not rates. Agents are not deterministic, and five tas
 
 ## Before and after
 
-`pnpm demo:compare` gives one prompt to an agent in the same two setups, scores both with `ds check` and writes Markdown reports, including the code the agent wrote, to [demo/results/](demo/results/README.md). The committed run used the CLI's default model on the login form task, and both setups passed.
+`pnpm demo:compare` gives one prompt to an agent in the same two setups, scores both with `ds check` and writes Markdown reports, including the code the agent wrote, to [demo/results/](demo/results/README.md). The committed run used `claude-haiku-5-5` on the login form task, and both setups passed. An earlier run on the CLI's default model also passed in both.

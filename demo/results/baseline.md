@@ -6,10 +6,11 @@ The playground, with the design system installed as a compiled package in `node_
 
 - Date: 2026-11-12
 - Prompt: Build a login form with an email field, a password field and a primary "Sign in" button. Export it as LoginForm. Use this repo's design system. Write it to playground/src/pages/LoginForm.tsx.
-- Agent command: `claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands`
+- Agent command: `claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands --model claude-haiku-5-5`
+- Model: claude-haiku-5-5
 - Agent exit code: 0
-- Turns: 6
-- Duration: 22s
+- Turns: 12
+- Duration: 26s
 - `ds check`: passed
 
 ## ds check report
@@ -32,30 +33,33 @@ export function LoginForm() {
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    // Hook up authentication here.
+    // Authentication is not wired up yet; this page only lays out the form.
   }
 
   return (
     <Card>
       <form onSubmit={handleSubmit}>
-        <Stack gap="md">
+        <Stack gap="lg">
           <Heading level={2}>Sign in</Heading>
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={setEmail}
-            required
-          />
-          <TextField
-            label="Password"
-            name="password"
-            type="password"
-            value={password}
-            onChange={setPassword}
-            required
-          />
+          <Stack gap="md">
+            <TextField
+              label="Email"
+              name="email"
+              type="email"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+              required
+            />
+            <TextField
+              label="Password"
+              name="password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              required
+            />
+          </Stack>
           <Button variant="primary" type="submit">
             Sign in
           </Button>
@@ -68,17 +72,15 @@ export function LoginForm() {
 
 ## What the agent said
 
-I added `LoginForm` in `playground/src/pages/LoginForm.tsx`. I haven't checked that it compiles: the typecheck (`npx tsc --noEmit`) needed your approval and didn't run.
+I wrote `playground/src/pages/LoginForm.tsx`, but I could not run the typecheck. Every shell command that compiles or runs the project was refused as needing approval, so I checked the types by reading the design system's declarations.
 
-It's built entirely from this repo's design system (`starter-ds`, imported as `@ds`), with no custom styling:
+The file exports `LoginForm` as a named export, which is what `playground/src/App.tsx` expects for a file in `pages/`. It renders:
 
-- **Layout:** a `Card` holding a `<form>`, with a `Stack` (`gap="md"`) and a "Sign in" `Heading` at level 2.
-- **Fields:** two `TextField`s, one for email and one for password. Each has a visible label and is marked required, and their values are kept in React state.
-- **Button:** a primary `Button` labelled "Sign in" that submits the form.
+- A `Card` containing a level-2 `Heading` ("Sign in") and a `<form>`.
+- An email `TextField` (`type="email"`, `name="email"`, required) and a password `TextField` (`type="password"`, `name="password"`, required), both controlled with `useState`.
+- A `Button` with `variant="primary"` and `type="submit"`, labelled "Sign in". The design system's `Button` forwards `type` to the native element, so it submits the form.
 
-Submitting the form does nothing yet. The submit handler only stops the page from reloading, and there's a comment marking where to add the sign-in call.
+On submit the handler calls `preventDefault()` and does nothing else. I left authentication out because you didn't specify a backend; the handler has a comment saying so.
 
-The playground lists it automatically, so you can open it at `?page=LoginForm`.
-
-To check it compiles, run `npm run typecheck`.
+The props I used all match the design system's type declarations (`Stack gap="lg"` and `gap="md"` are valid `space` tokens). To confirm the file compiles, run `npm run typecheck` from the project root.
 
