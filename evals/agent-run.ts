@@ -1,24 +1,31 @@
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { relative } from "node:path";
 import { fromRoot, root } from "../cli/lib/paths";
-import { agentCommandLine, agentPrompt, createWorkspace, runAgent, scoreWorkspace, type Variant } from "./agent";
+import {
+  agentCommandLine,
+  agentPrompt,
+  createWorkspace,
+  parseAgentOptions,
+  runAgent,
+  scoreWorkspace,
+  type Variant,
+} from "./agent";
 import { loadTasks, type Task } from "./run";
 
 const RESULTS_DIR = fromRoot("evals/results");
 
-const args = process.argv.slice(2);
-const variant: Variant = args.includes("--baseline") ? "baseline" : "toolkit";
-const requested = args.filter((arg) => !arg.startsWith("--"));
+const { model, positional: requested, flags } = parseAgentOptions(process.argv.slice(2));
+const variant: Variant = flags.includes("--baseline") ? "baseline" : "toolkit";
 const tasks = loadTasks().filter((task) => requested.length === 0 || requested.includes(task.id));
 
 if (tasks.length === 0) {
-  console.error(`No matching eval tasks. Usage: pnpm evals:agent [--baseline] [task-id...]`);
+  console.error(`No matching eval tasks. Usage: pnpm evals:agent [--baseline] [--model <id>] [task-id...]`);
   process.exit(2);
 }
 
 async function runTask(task: Task) {
   const workspace = createWorkspace(variant);
-  const run = await runAgent(workspace, agentPrompt(task));
+  const run = await runAgent(workspace, agentPrompt(task), model);
   const score = await scoreWorkspace(workspace, task, `${variant}-${task.id}`);
   rmSync(workspace, { recursive: true, force: true });
 
@@ -31,6 +38,7 @@ async function runTask(task: Task) {
     targetWritten: score.targetExists,
     turns: run.turns,
     seconds: run.seconds,
+    models: run.models,
     violations: score.violations.map((violation) => ({
       rule: violation.rule,
       file: relative(root, violation.file),
@@ -40,16 +48,17 @@ async function runTask(task: Task) {
   };
 }
 
-console.log(`Running ${tasks.length} task(s) in the ${variant} setup with: ${agentCommandLine()}`);
+console.log(`Running ${tasks.length} task(s) in the ${variant} setup with: ${agentCommandLine(model)}`);
 const results = await Promise.all(tasks.map(runTask));
 const passedCount = results.filter((result) => result.passed).length;
 const date = new Date().toISOString().slice(0, 10);
-const fileName = variant === "toolkit" ? `${date}.json` : `${date}-${variant}.json`;
+const fileName = `${[date, variant === "toolkit" ? "" : variant, model ?? ""].filter(Boolean).join("-")}.json`;
 const report = {
   generatedBy: "evals/agent-run.ts",
   date,
   variant,
-  agent: agentCommandLine(),
+  agent: agentCommandLine(model),
+  models: [...new Set(results.flatMap((result) => result.models))],
   passed: passedCount,
   total: results.length,
   results,

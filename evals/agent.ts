@@ -15,7 +15,14 @@ export interface AgentRun {
   exitCode: number | null;
   seconds: number;
   turns: number | null;
+  models: string[];
   output: string;
+}
+
+export interface AgentOptions {
+  model?: string;
+  positional: string[];
+  flags: string[];
 }
 
 export interface Score {
@@ -112,12 +119,27 @@ export function agentPrompt(task: Task): string {
   return `${task.prompt} Use this repo's design system. Write it to ${task.target}.`;
 }
 
-export function agentCommandLine(): string {
-  return [config.agent.command, ...config.agent.args].join(" ");
+export function parseAgentOptions(args: string[]): AgentOptions {
+  const modelFlag = args.indexOf("--model");
+  const model = modelFlag === -1 ? undefined : args[modelFlag + 1];
+  const others = args.filter((_, index) => modelFlag === -1 || (index !== modelFlag && index !== modelFlag + 1));
+  return {
+    model,
+    positional: others.filter((arg) => !arg.startsWith("--")),
+    flags: others.filter((arg) => arg.startsWith("--")),
+  };
 }
 
-export function runAgent(workspace: string, prompt: string): Promise<AgentRun> {
-  const args = config.agent.args.map((arg) => arg.replace("{prompt}", prompt));
+function agentArgs(model?: string): string[] {
+  return model ? [...config.agent.args, "--model", model] : config.agent.args;
+}
+
+export function agentCommandLine(model?: string): string {
+  return [config.agent.command, ...agentArgs(model)].join(" ");
+}
+
+export function runAgent(workspace: string, prompt: string, model?: string): Promise<AgentRun> {
+  const args = agentArgs(model).map((arg) => arg.replace("{prompt}", prompt));
   const started = Date.now();
   return new Promise((resolve) => {
     const child = spawn(config.agent.command, args, { cwd: workspace, stdio: ["ignore", "pipe", "pipe"] });
@@ -128,7 +150,7 @@ export function runAgent(workspace: string, prompt: string): Promise<AgentRun> {
     child.stderr.on("data", (chunk) => (stderr += chunk));
     child.on("error", (error) => {
       clearTimeout(timer);
-      resolve({ exitCode: null, seconds: 0, turns: null, output: `Could not start ${config.agent.command}: ${error.message}` });
+      resolve({ exitCode: null, seconds: 0, turns: null, models: [], output: `Could not start ${config.agent.command}: ${error.message}` });
     });
     child.on("close", (exitCode) => {
       clearTimeout(timer);
@@ -138,15 +160,16 @@ export function runAgent(workspace: string, prompt: string): Promise<AgentRun> {
   });
 }
 
-function readAgentOutput(stdout: string, stderr: string): Pick<AgentRun, "turns" | "output"> {
+function readAgentOutput(stdout: string, stderr: string): Pick<AgentRun, "turns" | "models" | "output"> {
   try {
     const parsed = JSON.parse(stdout);
     return {
       turns: typeof parsed.num_turns === "number" ? parsed.num_turns : null,
+      models: Object.keys(parsed.modelUsage ?? {}).sort(),
       output: typeof parsed.result === "string" ? parsed.result : stdout,
     };
   } catch {
-    return { turns: null, output: (stdout || stderr).trim() };
+    return { turns: null, models: [], output: (stdout || stderr).trim() };
   }
 }
 

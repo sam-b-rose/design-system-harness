@@ -5,6 +5,7 @@ import {
   agentCommandLine,
   agentPrompt,
   createWorkspace,
+  parseAgentOptions,
   runAgent,
   scoreWorkspace,
   type AgentRun,
@@ -56,7 +57,8 @@ function variantReport(result: Result, task: Task, date: string): string {
     [
       `- Date: ${date}`,
       `- Prompt: ${agentPrompt(task)}`,
-      `- Agent command: \`${agentCommandLine()}\``,
+      `- Agent command: \`${agentCommandLine(model)}\``,
+      `- Model: ${result.run.models.join(", ") || "not reported"}`,
       `- Agent exit code: ${result.run.exitCode ?? "did not start"}`,
       `- Turns: ${result.run.turns ?? "not reported"}`,
       `- Duration: ${result.run.seconds}s`,
@@ -85,18 +87,19 @@ function summary(results: Result[], task: Task, date: string): string {
   ].join("\n\n");
 }
 
-const taskId = process.argv[2] ?? DEFAULT_TASK;
+const { model, positional } = parseAgentOptions(process.argv.slice(2));
+const taskId = positional[0] ?? DEFAULT_TASK;
 const task = loadTasks().find((candidate) => candidate.id === taskId);
 if (!task) {
   console.error(`No eval task named "${taskId}" in evals/tasks/.`);
   process.exit(2);
 }
 
-console.log(`Running "${task.id}" against ${VARIANTS.length} setups with: ${agentCommandLine()}`);
+console.log(`Running "${task.id}" against ${VARIANTS.length} setups with: ${agentCommandLine(model)}`);
 const results = await Promise.all(
   VARIANTS.map(async ({ variant, title, setup }): Promise<Result> => {
     const workspace = createWorkspace(variant);
-    const run = await runAgent(workspace, agentPrompt(task));
+    const run = await runAgent(workspace, agentPrompt(task), model);
     const score = await scoreWorkspace(workspace, task, variant);
     rmSync(workspace, { recursive: true, force: true });
     return { variant, title, setup, run, score };
