@@ -28,13 +28,14 @@ For task-specific guidance, read the skill:
 | `pnpm ds docs search <query>` | Finds the docs sections matching a query |
 | `pnpm ds exports` | Lists everything `@ds` exports |
 | `pnpm ds tokens list` | Lists design tokens |
-| `pnpm ds check [path]` | Type-checks and lints `playground/` or a path |
+| `pnpm ds add <page\|form> <name>` | Creates a starting file in `playground/src/pages/` |
+| `pnpm ds check [path]` | Type-checks, lints and audits `playground/` or a path |
 | `pnpm docs:build` | Regenerates `docs/generated/` after editing the design system |
 
 ## Where things are
 
 - `docs/generated/llms.txt`: index of all generated docs
-- `playground/src/pages/`: where new UI goes
+- `playground/src/pages/`: where new UI goes. Start with `pnpm ds add`.
 - `packages/ds/src/`: the design system source. Do not edit it for a UI task.
 
 ## Example

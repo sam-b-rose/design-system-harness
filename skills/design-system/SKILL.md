@@ -24,6 +24,7 @@ Read only the reference the task needs.
 
 | Task | Read | Run |
 | --- | --- | --- |
+| Starting a new page or form | | `ds add page <name>` or `ds add form <name>`, then edit the file it creates |
 | Building a form | [references/components.md#textfield](references/components.md#textfield) | `ds docs get TextField`, `ds docs get Button` |
 | Showing an error, success or info message | [references/components.md#alert](references/components.md#alert) | `ds docs get Alert` |
 | Grouping content in a panel or section | [references/components.md#card](references/components.md#card) | `ds docs get Card` |
@@ -42,11 +43,12 @@ Incorrect: write from memory, then report the task as done.
 "The login form is complete."
 ```
 
-Correct: retrieve, write, check, fix, check again.
+Correct: scaffold, retrieve, write, check, fix, check again.
 
 ```
+pnpm ds add form login      # creates playground/src/pages/LoginForm.tsx
 pnpm ds docs get Button     # props are variant, type, disabled, onClick
-(writes <Button variant="primary" type="submit">)
+(edits the file: <Button variant="primary" type="submit">)
 pnpm ds check               # 1 problem
 (fixes the reported problem)
 pnpm ds check               # ds check passed

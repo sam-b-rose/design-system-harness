@@ -36,10 +36,12 @@ Correct:
 </Stack>
 ```
 
+`ds check` reports: `Raw <div> with flex, grid or gap styling. Use Stack for layout and spacing (see: ds docs get Stack).`
+
 ## Common layouts
 
-A page: one vertical `Stack` with a `Heading level={1}` first.
+A page: one vertical `Stack` with a `Heading level={1}` first. `ds add page <name>` creates this.
 
-A form: `<form>` containing one vertical `Stack` of `TextField`s, with the submit `Button` last.
+A form: `<form>` containing one vertical `Stack` of `TextField`s, with the submit `Button` last. `ds add form <name>` creates this.
 
 A row of actions: a horizontal `Stack` with `gap="sm"`, primary action first.
