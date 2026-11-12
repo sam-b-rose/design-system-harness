@@ -4,6 +4,7 @@ import { getComponentDoc } from "./lib/docs";
 import { formatExports, formatTokens, type TextResult } from "./lib/format";
 import { listTemplates, scaffold } from "./lib/scaffold";
 import { formatSearch } from "./lib/search";
+import { runVisualCheck } from "./lib/visual";
 
 const cli = config.cliName;
 
@@ -14,7 +15,8 @@ const USAGE = `Usage: ${cli} <command>
   ${cli} exports                       List everything ${config.alias} exports
   ${cli} tokens list [--category <c>]  List design tokens
   ${cli} add <${listTemplates().join("|")}> <name>          Create a starting file in ${config.pagesDir}/
-  ${cli} check [path...]               Type-check, lint and audit files (default: ${config.playgroundDir}/)
+  ${cli} check [path...] [--visual]    Type-check, lint and audit files (default: ${config.playgroundDir}/)
+                                     --visual also renders each page in a browser and saves a screenshot
 
 Run it through pnpm: pnpm ${cli} <command>`;
 
@@ -64,9 +66,15 @@ async function main(args: string[]): Promise<void> {
   }
 
   if (command === "check") {
-    const { files, missing } = resolveTargets(rest);
+    const { files, missing } = resolveTargets(rest.filter((arg) => arg !== "--visual"));
     if (missing.length > 0) fail(`Path not found: ${missing.join(", ")}`, 2);
     const violations = await runCheck(files);
+    if (rest.includes("--visual")) {
+      const visual = await runVisualCheck(files);
+      if (!visual.ok) fail(visual.message, 2);
+      violations.push(...visual.violations);
+      console.log(`Screenshots: ${visual.screenshots.join(", ") || "no pages to render"}\n`);
+    }
     console.log(formatReport(violations, files.length));
     process.exit(violations.length === 0 ? 0 : 1);
   }
