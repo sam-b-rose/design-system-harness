@@ -8,8 +8,8 @@ The whole repo: `AGENTS.md`, the skill, the `ds` CLI and the generated docs.
 - Prompt: Build a login form with an email field, a password field and a primary "Sign in" button. Export it as LoginForm. Use this repo's design system. Write it to playground/src/pages/LoginForm.tsx.
 - Agent command: `claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands`
 - Agent exit code: 0
-- Turns: 7
-- Duration: 26s
+- Turns: 6
+- Duration: 24s
 - `ds check`: passed
 
 ## ds check report
@@ -23,12 +23,21 @@ ds check passed: 1 files, 0 problems.
 ### playground/src/pages/LoginForm.tsx
 
 ```tsx
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { Button, Card, Heading, Stack, TextField } from "@ds";
 
 export function LoginForm() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+  }
+
   return (
     <Card>
-      <form>
+      <form onSubmit={handleSubmit}>
         <Stack gap="md">
           <Heading level={2}>Sign in</Heading>
           <TextField
@@ -36,9 +45,18 @@ export function LoginForm() {
             name="email"
             type="email"
             placeholder="you@example.com"
+            value={email}
+            onChange={setEmail}
             required
           />
-          <TextField label="Password" name="password" type="password" required />
+          <TextField
+            label="Password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            required
+          />
           <Stack direction="horizontal" gap="sm">
             <Button variant="primary" type="submit">
               Sign in
@@ -53,9 +71,11 @@ export function LoginForm() {
 
 ## What the agent said
 
-I've written the login form to `playground/src/pages/LoginForm.tsx`, exported as `LoginForm`, and `pnpm ds check` passes with no problems.
+I built the login form in `playground/src/pages/LoginForm.tsx` and exported it as `LoginForm`. `pnpm ds check` passes with 0 problems.
 
-It's a `Card` with a "Sign in" heading, then two required fields: email (`type="email"`, placeholder "you@example.com") and password (`type="password"`). Last is the primary "Sign in" button, set as the form's submit button. Everything comes from `@ds` and spacing uses `Stack`, so there are no hard-coded colors or sizes.
+- **Layout:** a `Card` holds a `<form>`, and a `Stack` spaces the contents. It opens with a "Sign in" heading.
+- **Fields:** an Email field (`type="email"`) and a Password field (`type="password"`). Both are required and keep their values in component state.
+- **Button:** one primary "Sign in" button that submits the form.
 
-The form doesn't do anything on submit yet: there's no submit handler, validation or error display. When you wire up login, you can show error messages with the fields' `error` prop.
+Submitting doesn't do anything yet: `handleSubmit` just stops the page from reloading. That's where you'd add the call that actually signs the user in.
 

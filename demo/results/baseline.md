@@ -2,14 +2,14 @@
 
 # Baseline: login-form
 
-The design system source and the playground only. No `AGENTS.md`, no skill, no `ds` CLI, no generated docs.
+The playground, with the design system installed as a compiled package in `node_modules` (JavaScript and type declarations). No design system source, no `AGENTS.md`, no skill, no `ds` CLI, no generated docs.
 
 - Date: 2026-11-12
 - Prompt: Build a login form with an email field, a password field and a primary "Sign in" button. Export it as LoginForm. Use this repo's design system. Write it to playground/src/pages/LoginForm.tsx.
 - Agent command: `claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands`
 - Agent exit code: 0
-- Turns: 7
-- Duration: 27s
+- Turns: 6
+- Duration: 22s
 - `ds check`: passed
 
 ## ds check report
@@ -26,65 +26,59 @@ ds check passed: 1 files, 0 problems.
 import { useState, type FormEvent } from "react";
 import { Button, Card, Heading, Stack, TextField } from "@ds";
 
-export interface LoginFormProps {
-  /** Called with the entered credentials when the form is submitted. */
-  onSubmit?: (credentials: { email: string; password: string }) => void;
-}
-
-export function LoginForm({ onSubmit }: LoginFormProps) {
+export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onSubmit?.({ email, password });
+    // Hook up authentication here.
   }
 
   return (
-    <Stack gap="lg">
-      <Heading level={1}>Welcome back</Heading>
-      <Card>
-        <form onSubmit={handleSubmit}>
-          <Stack gap="md">
-            <Heading level={2}>Sign in</Heading>
-            <TextField
-              label="Email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={setEmail}
-              required
-            />
-            <TextField
-              label="Password"
-              name="password"
-              type="password"
-              value={password}
-              onChange={setPassword}
-              required
-            />
-            <Stack direction="horizontal" gap="sm">
-              <Button variant="primary" type="submit">
-                Sign in
-              </Button>
-            </Stack>
-          </Stack>
-        </form>
-      </Card>
-    </Stack>
+    <Card>
+      <form onSubmit={handleSubmit}>
+        <Stack gap="md">
+          <Heading level={2}>Sign in</Heading>
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={setEmail}
+            required
+          />
+          <TextField
+            label="Password"
+            name="password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            required
+          />
+          <Button variant="primary" type="submit">
+            Sign in
+          </Button>
+        </Stack>
+      </form>
+    </Card>
   );
 }
 ```
 
 ## What the agent said
 
-I created `LoginForm` in `playground/src/pages/LoginForm.tsx`, using only the design system's components. I haven't type-checked or run it: the type check needed a permission I didn't have.
+I added `LoginForm` in `playground/src/pages/LoginForm.tsx`. I haven't checked that it compiles: the typecheck (`npx tsc --noEmit`) needed your approval and didn't run.
 
-- **Layout:** a "Welcome back" page title, then a card titled "Sign in" holding the form. That follows the design system's docs: one top-level heading per page, and each card starts with its own heading.
-- **Fields:** an Email field and a Password field, both required. They use the design system's text field component, which puts the label on each field for you.
-- **Button:** a primary "Sign in" button that submits the form.
-- **Submitting:** the form stops the browser from reloading the page and passes the email and password to an optional `onSubmit` callback.
+It's built entirely from this repo's design system (`starter-ds`, imported as `@ds`), with no custom styling:
 
-It will show up in the playground's list of pages as `?page=LoginForm`. To type-check it, run `npx tsc -p .`.
+- **Layout:** a `Card` holding a `<form>`, with a `Stack` (`gap="md"`) and a "Sign in" `Heading` at level 2.
+- **Fields:** two `TextField`s, one for email and one for password. Each has a visible label and is marked required, and their values are kept in React state.
+- **Button:** a primary `Button` labelled "Sign in" that submits the form.
+
+Submitting the form does nothing yet. The submit handler only stops the page from reloading, and there's a comment marking where to add the sign-in call.
+
+The playground lists it automatically, so you can open it at `?page=LoginForm`.
+
+To check it compiles, run `npm run typecheck`.
 

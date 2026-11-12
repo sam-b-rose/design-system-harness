@@ -8,8 +8,8 @@ One run of the same prompt against two copies of the repo, on 2026-11-12. Scored
 
 | Setup | `ds check` | Rules violated | Turns | Duration |
 | --- | --- | --- | --- | --- |
-| [Baseline](baseline.md) | passed | none | 7 | 27s |
-| [Full toolkit](toolkit.md) | passed | none | 7 | 26s |
+| [Baseline](baseline.md) | passed | none | 6 | 22s |
+| [Full toolkit](toolkit.md) | passed | none | 6 | 24s |
 
 This is a single run, not a benchmark. Agents are not deterministic, so run `pnpm demo:compare` to get your own result.
 
