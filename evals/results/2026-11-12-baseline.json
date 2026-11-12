@@ -1,0 +1,55 @@
+{
+  "generatedBy": "evals/agent-run.ts",
+  "date": "2026-11-12",
+  "variant": "baseline",
+  "agent": "claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands",
+  "passed": 5,
+  "total": 5,
+  "results": [
+    {
+      "task": "account-page",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 7,
+      "seconds": 35,
+      "violations": []
+    },
+    {
+      "task": "empty-state",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 7,
+      "seconds": 31,
+      "violations": []
+    },
+    {
+      "task": "login-form",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 7,
+      "seconds": 36,
+      "violations": []
+    },
+    {
+      "task": "settings-card",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 7,
+      "seconds": 32,
+      "violations": []
+    },
+    {
+      "task": "signup-form",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 6,
+      "seconds": 25,
+      "violations": []
+    }
+  ]
+}
