@@ -20,9 +20,9 @@ The loop is drawn in [docs/loop.md](docs/loop.md).
 | --- | --- | --- |
 | 1. Machine-readable docs | `scripts/build-docs.ts` → `docs/generated/` | `m1-first-loop`, `m2-skill-and-retrieval` |
 | 2. Instruction file | `AGENTS.md`, `skills/design-system/` | `m1-first-loop`, `m2-skill-and-retrieval` |
-| 3. Retrieval path | `cli/` | `m2-skill-and-retrieval` |
+| 3. Retrieval path | `cli/`, optional `mcp/` | `m2-skill-and-retrieval`, `m5-stretch` |
 | 4. Generate → check → fix | `cli/templates/`, `cli/lib/check.ts`, `lint/` | `m3-scaffold-and-audit` |
-| 5. Regression suite | `evals/`, `tests/`, `.github/workflows/ci.yml` | `m4-evals-and-ci` |
+| 5. Regression suite | `evals/`, `tests/`, `.github/workflows/ci.yml` | `m4-evals-and-ci`, `m5-stretch` |
 
 `ds.config.ts` ties them together. It holds the import alias, the CLI name and the known hallucinations, and the lint rules, generated docs and evals all read from it.
 
@@ -77,10 +77,12 @@ If you change the alias, change `paths` in `tsconfig.json` to match. A test fail
 | `pnpm ds exports` | Prints the allow-list of real exports |
 | `pnpm ds tokens list [--category color]` | Prints design tokens |
 | `pnpm ds add <page\|form> <name>` | Creates a starting file in `playground/src/pages/` |
-| `pnpm ds check [path...]` | Type-checks, lints and audits `playground/` or the given paths |
+| `pnpm ds check [path...] [--visual]` | Type-checks, lints and audits `playground/` or the given paths |
+| `pnpm mcp` | Starts the optional read-only MCP server on stdio |
 | `pnpm docs:build` / `pnpm docs:check` | Compiles the generated files / fails if they are out of date |
 | `pnpm evals` | Asserts good fixtures pass `ds check` and bad fixtures fail with the expected rule |
 | `pnpm test` | Tests for the lint rules, the CLI and the agent-facing files |
+| `pnpm evals:agent [--baseline] [task...]` | Runs an agent on every task and scores it with `ds check` |
 | `pnpm demo:compare [task]` | Runs an agent on one task with and without the toolkit |
 | `pnpm starter:reset` | Removes the sample content |
 
@@ -95,7 +97,34 @@ If you change the alias, change `paths` in `tsconfig.json` to match. A test fail
 | Audit (`lint/audit/`) | `audit/textfield-label` | A `TextField` without a visible label |
 | | `audit/one-primary-button` | More than one primary `Button` in a file |
 
+| Visual (`--visual` only) | `visual/render-error` | A page that throws or renders nothing in a real browser |
+
 Every message says what to do next. Inline `eslint-disable` comments are ignored. The exit code is 0 for no problems, 1 for problems, 2 for a bad path. No LLM is involved.
+
+`--visual` opens each page in `playground/src/pages/` in headless Chromium, fails on runtime errors and saves a screenshot to `playground/.screenshots/`. It needs Playwright, which is not installed by default:
+
+```bash
+pnpm add -D playwright
+```
+
+```bash
+pnpm exec playwright install chromium
+```
+
+## Optional: MCP
+
+`mcp/server.ts` exposes the four read-only retrieval commands as MCP tools: `docs_get`, `docs_search`, `exports` and `tokens_list`. Each tool calls the same library function as the CLI command, so the two cannot drift. The CLI is the primary path; use MCP for agents without a shell.
+
+```json
+{
+  "mcpServers": {
+    "design-system": {
+      "command": "pnpm",
+      "args": ["exec", "tsx", "mcp/server.ts"]
+    }
+  }
+}
+```
 
 ## The regression suite
 
@@ -104,6 +133,8 @@ Every message says what to do next. Inline `eslint-disable` comments are ignored
 - `good/<task>.tsx` must pass `ds check`.
 - `bad/<task>.<failure>.tsx` must fail with the rule named in the task file.
 - For every entry in `knownHallucinations`, the runner swaps the real component for the hallucinated one in the good fixture and asserts that the message names the replacement.
+
+`pnpm evals:agent` goes one step further and runs a real agent on each task prompt in a temporary copy of the repo, then records pass or fail, turns and rule violations to `evals/results/<date>.json`. Add `--baseline` to run it without the toolkit. One run of each is committed. It is not part of CI.
 
 CI runs `docs:check`, `typecheck`, `lint`, `test` and `evals`, plus a second job that runs `starter:reset` and repeats the checks.
 
