@@ -1,10 +1,10 @@
 import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import config from "../ds.config";
-import { runCheck, type Violation } from "../cli/lib/check";
+import { runCheck } from "../cli/lib/check";
 import { fromRoot } from "../cli/lib/paths";
 
-interface Task {
+export interface Task {
   id: string;
   prompt: string;
   target: string;
@@ -13,72 +13,78 @@ interface Task {
   bad: { fixture: string; rule: string }[];
 }
 
-interface Outcome {
+interface Case {
   label: string;
-  passed: boolean;
-  detail: string;
+  file: string;
+  expected: "pass" | { rule: string; messagePart: string };
 }
 
 const TASKS_DIR = fromRoot("evals/tasks");
 const FIXTURES_DIR = fromRoot("evals/fixtures");
-const TEMP_DIR = fromRoot("evals/.tmp");
+const DERIVED_DIR = fromRoot("evals/.tmp/derived");
 
-const rulesOf = (violations: Violation[]) => [...new Set(violations.map((violation) => violation.rule))];
-
-async function expectPass(label: string, file: string): Promise<Outcome> {
-  const violations = await runCheck([file]);
-  const detail = violations.length === 0 ? "passes" : `expected to pass, got: ${rulesOf(violations).join(", ")}`;
-  return { label, passed: violations.length === 0, detail };
+export function loadTasks(): Task[] {
+  return readdirSync(TASKS_DIR)
+    .filter((file) => file.endsWith(".json"))
+    .sort()
+    .map((file) => JSON.parse(readFileSync(join(TASKS_DIR, file), "utf8")));
 }
 
-async function expectFail(label: string, file: string, rule: string, messagePart = ""): Promise<Outcome> {
-  const violations = await runCheck([file]);
-  const hit = violations.find((violation) => violation.rule === rule && violation.message.includes(messagePart));
-  const expected = messagePart ? `${rule} mentioning "${messagePart}"` : rule;
-  const detail = hit ? `fails with ${rule}` : `expected ${expected}, got: ${rulesOf(violations).join(", ") || "no problems"}`;
-  return { label, passed: hit !== undefined, detail };
+function fixtureCases(task: Task): Case[] {
+  const good = task.good.map((fixture): Case => ({
+    label: `${task.id}: ${fixture}`,
+    file: join(FIXTURES_DIR, fixture),
+    expected: "pass",
+  }));
+  const bad = task.bad.map(({ fixture, rule }): Case => ({
+    label: `${task.id}: ${fixture}`,
+    file: join(FIXTURES_DIR, fixture),
+    expected: { rule, messagePart: "" },
+  }));
+  return [...good, ...bad];
 }
 
-async function runTask(task: Task): Promise<Outcome[]> {
-  const outcomes: Outcome[] = [];
-  for (const fixture of task.good) {
-    outcomes.push(await expectPass(`${task.id}: ${fixture}`, join(FIXTURES_DIR, fixture)));
+function hallucinationCases(task: Task): Case[] {
+  return task.good.flatMap((fixture) => {
+    const source = readFileSync(join(FIXTURES_DIR, fixture), "utf8");
+    return Object.entries(config.knownHallucinations).flatMap(([name, replacement]): Case[] => {
+      const real = new RegExp(`\\b${replacement}\\b`, "g");
+      if (!real.test(source)) return [];
+      const file = join(DERIVED_DIR, `${task.id}.${name}.tsx`);
+      writeFileSync(file, source.replace(real, name));
+      return [
+        {
+          label: `${task.id}: ${fixture} with ${replacement} swapped for ${name} (from ds.config.ts)`,
+          file,
+          expected: { rule: "ds/no-unknown-imports", messagePart: `Use ${replacement}` },
+        },
+      ];
+    });
+  });
+}
+
+async function main(): Promise<void> {
+  const tasks = loadTasks();
+  mkdirSync(DERIVED_DIR, { recursive: true });
+  const cases = tasks.flatMap((task) => [...fixtureCases(task), ...hallucinationCases(task)]);
+  const violations = await runCheck(cases.map((testCase) => testCase.file));
+  rmSync(DERIVED_DIR, { recursive: true });
+
+  let failures = 0;
+  for (const { label, file, expected } of cases) {
+    const found = violations.filter((violation) => violation.file === file);
+    const rules = [...new Set(found.map((violation) => violation.rule))].join(", ") || "no problems";
+    const passed =
+      expected === "pass"
+        ? found.length === 0
+        : found.some((violation) => violation.rule === expected.rule && violation.message.includes(expected.messagePart));
+    const wanted = expected === "pass" ? "passes" : `fails with ${expected.rule}`;
+    if (!passed) failures += 1;
+    console.log(passed ? `ok    ${label}  (${wanted})` : `FAIL  ${label}  (expected: ${wanted}; got: ${rules})`);
   }
-  for (const { fixture, rule } of task.bad) {
-    outcomes.push(await expectFail(`${task.id}: ${fixture}`, join(FIXTURES_DIR, fixture), rule));
-  }
-  return outcomes;
+
+  console.log(`\n${cases.length - failures}/${cases.length} eval assertions passed across ${tasks.length} task(s).`);
+  process.exit(failures === 0 ? 0 : 1);
 }
 
-async function runKnownHallucinations(): Promise<Outcome[]> {
-  mkdirSync(TEMP_DIR, { recursive: true });
-  const outcomes: Outcome[] = [];
-  for (const [name, replacement] of Object.entries(config.knownHallucinations)) {
-    const file = join(TEMP_DIR, `${name}.tsx`);
-    writeFileSync(
-      file,
-      `import { ${name} } from "${config.alias}";\n\nexport function Example() {\n  return <${name} />;\n}\n`,
-    );
-    outcomes.push(
-      await expectFail(`ds.config.ts: import { ${name} }`, file, "ds/no-unknown-imports", `Use ${replacement}`),
-    );
-  }
-  rmSync(TEMP_DIR, { recursive: true });
-  return outcomes;
-}
-
-const tasks = readdirSync(TASKS_DIR)
-  .filter((file) => file.endsWith(".json"))
-  .sort()
-  .map((file): Task => JSON.parse(readFileSync(join(TASKS_DIR, file), "utf8")));
-
-const outcomes: Outcome[] = [];
-for (const task of tasks) outcomes.push(...(await runTask(task)));
-outcomes.push(...(await runKnownHallucinations()));
-
-for (const outcome of outcomes) {
-  console.log(`${outcome.passed ? "ok  " : "FAIL"}  ${outcome.label}  (${outcome.detail})`);
-}
-const failed = outcomes.filter((outcome) => !outcome.passed);
-console.log(`\n${outcomes.length - failed.length}/${outcomes.length} eval assertions passed across ${tasks.length} task(s).`);
-process.exit(failed.length === 0 ? 0 : 1);
+if (import.meta.url === `file://${process.argv[1]}`) await main();

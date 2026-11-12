@@ -1,0 +1,28 @@
+{
+  "id": "signup-form",
+  "prompt": "Build a sign-up form with name, email and password fields and a primary \"Create account\" button. Show the form-level error \"We could not create your account.\" above the fields and the field error \"That email is already registered.\" on the email field. Export it as SignupForm.",
+  "target": "playground/src/pages/SignupForm.tsx",
+  "checks": [
+    "tsc",
+    "ds/no-unknown-imports",
+    "ds/no-raw-values",
+    "ds/prefer-stack"
+  ],
+  "good": [
+    "good/signup-form.tsx"
+  ],
+  "bad": [
+    {
+      "fixture": "bad/signup-form.raw-div.tsx",
+      "rule": "ds/prefer-stack"
+    },
+    {
+      "fixture": "bad/signup-form.raw-values.tsx",
+      "rule": "ds/no-raw-values"
+    },
+    {
+      "fixture": "bad/signup-form.guessed-props.tsx",
+      "rule": "tsc/TS2322"
+    }
+  ]
+}
