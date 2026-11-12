@@ -194,3 +194,8 @@ Read these as single runs, not rates. Agents are not deterministic, and five tas
 ## Before and after
 
 `pnpm demo:compare` gives one prompt to an agent in the same two setups, scores both with `ds check` and writes Markdown reports, including the code the agent wrote, to [demo/results/](demo/results/README.md). The committed run used `claude-haiku-5-5` on the empty state task, chosen because the Haiku baseline failed it in the agent evals. The baseline failed again with `ds/prefer-stack` and `ds/no-raw-values`; the toolkit run passed. On the login form task, both setups passed with both models.
+
+## Further reading
+
+- Robin Di Capua, [A design system harness](https://brandstructure.design/articles/a-design-system-harness/) (branDStructure, 7 November 2026). It describes a harness that guides, constrains and verifies an agent. In this repo, `AGENTS.md` and `llms.txt` are the map, the skill is the recipe, the generated docs are the ingredients, and the `ds` CLI and MCP server are the equipment. `ds check` is the deterministic tier of verification, and the agent evals compare against a baseline.
+- Kaelig Deloumeau-Prigent, [State of AI in Design Systems](https://state-of-ai-in-design-systems.netlify.app/) (July 2026 snapshot, CC BY 4.0). It surveys how 21 design systems ship tooling for agents. This repo follows several of its findings: docs compiled from the same sources as human docs, short instruction files written as rules with an allow-list, tool-gating through the CLI, and validation loops that make the agent fix failures.
