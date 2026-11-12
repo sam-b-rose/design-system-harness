@@ -1,8 +1,11 @@
 import { test } from "node:test";
 import parser from "@typescript-eslint/parser";
 import { RuleTester } from "eslint";
+import { onePrimaryButton } from "../lint/audit/one-primary-button";
+import { textfieldLabel } from "../lint/audit/textfield-label";
 import { noRawValues } from "../lint/rules/no-raw-values";
 import { noUnknownImports } from "../lint/rules/no-unknown-imports";
+import { preferStack } from "../lint/rules/prefer-stack";
 
 const ruleTester = new RuleTester({
   languageOptions: { parser, parserOptions: { ecmaFeatures: { jsx: true } } },
@@ -58,6 +61,44 @@ test("ds/no-raw-values", () => {
       {
         code: "const a = <div style={{ border: `1px solid ${color}` }} />;",
         errors: [{ message: /^Hard-coded size "1px"/ }],
+      },
+    ],
+  });
+});
+
+test("ds/prefer-stack", () => {
+  const message = "Raw <div> with flex, grid or gap styling. Use Stack for layout and spacing (see: ds docs get Stack).";
+  ruleTester.run("prefer-stack", preferStack, {
+    valid: [
+      `const a = <Stack gap="md"><p>text</p></Stack>;`,
+      `const a = <div style={{ display: "block" }} className="flexible" />;`,
+    ],
+    invalid: [
+      { code: `const a = <div style={{ display: "flex" }} />;`, errors: [{ message }] },
+      { code: `const a = <div style={{ gap: token("space.md") }} />;`, errors: [{ message }] },
+      { code: `const a = <div className="mt-4 flex gap-2" />;`, errors: [{ message }] },
+      { code: `const a = <ul className="grid" />;`, errors: [{ message: /^Raw <ul>/ }] },
+    ],
+  });
+});
+
+test("audit/textfield-label", () => {
+  ruleTester.run("textfield-label", textfieldLabel, {
+    valid: [`const a = <TextField label="Email" name="email" />;`, `const a = <TextField {...fieldProps} />;`],
+    invalid: [
+      { code: `const a = <TextField name="email" />;`, errors: [{ message: /^TextField has no label/ }] },
+      { code: `const a = <TextField label=" " name="email" />;`, errors: [{ message: /^TextField has no label/ }] },
+    ],
+  });
+});
+
+test("audit/one-primary-button", () => {
+  ruleTester.run("one-primary-button", onePrimaryButton, {
+    valid: [`const a = <><Button variant="primary">Save</Button><Button>Cancel</Button></>;`],
+    invalid: [
+      {
+        code: `const a = <><Button variant="primary">Save</Button><Button variant="primary">Send</Button></>;`,
+        errors: [{ message: /^This file has 2 primary Buttons/ }],
       },
     ],
   });

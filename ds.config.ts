@@ -6,6 +6,8 @@ export interface DsConfig {
   componentsDir: string;
   generatedDir: string;
   playgroundDir: string;
+  pagesDir: string;
+  layoutComponent: string;
   knownHallucinations: Record<string, string>;
 }
 
@@ -17,6 +19,8 @@ const config: DsConfig = {
   componentsDir: "packages/ds/src/components",
   generatedDir: "docs/generated",
   playgroundDir: "playground",
+  pagesDir: "playground/src/pages",
+  layoutComponent: "Stack",
   knownHallucinations: {
     Box: "Stack",
     Container: "Stack",

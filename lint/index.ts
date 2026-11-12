@@ -1,9 +1,12 @@
 import parser from "@typescript-eslint/parser";
 import { ESLint } from "eslint";
 import { root } from "../cli/lib/paths";
+import { onePrimaryButton } from "./audit/one-primary-button";
+import { textfieldLabel } from "./audit/textfield-label";
 import { scanCss } from "./css-raw-values";
 import { noRawValues } from "./rules/no-raw-values";
 import { noUnknownImports } from "./rules/no-unknown-imports";
+import { preferStack } from "./rules/prefer-stack";
 
 export interface LintFinding {
   file: string;
@@ -16,7 +19,16 @@ export interface LintFinding {
 export const rules = {
   "no-unknown-imports": noUnknownImports,
   "no-raw-values": noRawValues,
+  "prefer-stack": preferStack,
 };
+
+export const audits = {
+  "textfield-label": textfieldLabel,
+  "one-primary-button": onePrimaryButton,
+};
+
+const enable = (namespace: string, group: Record<string, unknown>) =>
+  Object.keys(group).map((name) => [`${namespace}/${name}`, "error"]);
 
 export async function lintFiles(files: string[]): Promise<LintFinding[]> {
   const sources = files.filter((file) => /\.tsx?$/.test(file));
@@ -30,8 +42,8 @@ export async function lintFiles(files: string[]): Promise<LintFinding[]> {
       {
         files: ["**/*.ts", "**/*.tsx"],
         languageOptions: { parser, parserOptions: { ecmaFeatures: { jsx: true } } },
-        plugins: { ds: { rules } },
-        rules: Object.fromEntries(Object.keys(rules).map((name) => [`ds/${name}`, "error"])),
+        plugins: { ds: { rules }, audit: { rules: audits } },
+        rules: Object.fromEntries([...enable("ds", rules), ...enable("audit", audits)]),
       },
     ],
   });
