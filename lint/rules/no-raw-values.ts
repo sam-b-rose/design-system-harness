@@ -1,6 +1,6 @@
 import type { Rule } from "eslint";
 import config from "../../ds.config";
-import { exampleToken } from "../../cli/lib/tokens";
+import { exampleToken, type FlatToken } from "../../cli/lib/tokens";
 
 export const HEX_COLOR = /#(?:[0-9a-f]{8}|[0-9a-f]{6}|[0-9a-f]{3,4})\b/i;
 export const PX_VALUE = /\b(?!0+px)\d*\.?\d+px\b/;
@@ -8,14 +8,18 @@ export const PX_VALUE = /\b(?!0+px)\d*\.?\d+px\b/;
 const TOKENIZED_NUMERIC_PROPERTY = /^(padding|margin|gap|rowGap|columnGap|fontSize|borderRadius)/;
 const TOKENS_COMMAND = `${config.cliName} tokens list`;
 
+const forExample = (example: FlatToken | undefined) => (example ? `, e.g. ${example.usage[0]}` : "");
+
 export function rawValueMessage(text: string): string | undefined {
   const color = text.match(HEX_COLOR);
   if (color) {
-    return `Hard-coded color "${color[0]}". Use a color token, e.g. ${exampleToken(["color"])} (see: ${TOKENS_COMMAND} --category color).`;
+    const example = exampleToken(HEX_COLOR);
+    const see = example ? `${TOKENS_COMMAND} --category ${example.category}` : TOKENS_COMMAND;
+    return `Hard-coded color "${color[0]}". Use a color token${forExample(example)} (see: ${see}).`;
   }
   const size = text.match(PX_VALUE);
   if (size) {
-    return `Hard-coded size "${size[0]}". Use a space, radius or fontSize token, e.g. ${exampleToken(["space"])} (see: ${TOKENS_COMMAND}).`;
+    return `Hard-coded size "${size[0]}". Use a size token${forExample(exampleToken(PX_VALUE))} (see: ${TOKENS_COMMAND}).`;
   }
   return undefined;
 }

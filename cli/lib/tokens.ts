@@ -27,7 +27,6 @@ export function listTokens(category?: string): FlatToken[] {
   return category ? all.filter((entry) => entry.category === category) : all;
 }
 
-export function exampleToken(categories: string[]): string {
-  const match = listTokens().find((entry) => categories.includes(entry.category));
-  return match?.usage[0] ?? "a design token";
+export function exampleToken(value: RegExp): FlatToken | undefined {
+  return listTokens().find((entry) => value.test(entry.value));
 }
