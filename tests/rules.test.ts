@@ -50,6 +50,7 @@ test("ds/no-raw-values", () => {
       `const a = <div style={{ color: token("color.text.muted"), padding: token("space.md") }} />;`,
       `const a = <div style={{ margin: 0, padding: "0px", opacity: 0.5, flex: 1, maxWidth: "24rem" }} />;`,
       `const a = <a href="#fff">anchor</a>;`,
+      `const a = <div className="max-w-[24rem] w-1/2" />;`,
     ],
     invalid: [
       {
@@ -67,6 +68,14 @@ test("ds/no-raw-values", () => {
       {
         code: "const a = <div style={{ border: `1px solid ${color}` }} />;",
         errors: [{ message: /^Hard-coded size "1px"/ }],
+      },
+      {
+        code: `const a = <div className="mt-[12px]" />;`,
+        errors: [{ message: /^Hard-coded size "12px"/ }],
+      },
+      {
+        code: "const a = <p className={`text-[#5c6370] ${extra}`} />;",
+        errors: [{ message: /^Hard-coded color "#5c6370"/ }],
       },
     ],
   });

@@ -21,6 +21,7 @@ export function rawValueMessage(text: string): string | undefined {
 }
 
 const IN_STYLE = "JSXAttribute[name.name='style']";
+const IN_CLASS_NAME = "JSXAttribute[name.name='className']";
 
 export const noRawValues: Rule.RuleModule = {
   meta: { type: "problem", schema: [] },
@@ -48,6 +49,12 @@ export const noRawValues: Rule.RuleModule = {
         }
       },
       [`${IN_STYLE} TemplateElement`](node: Rule.Node) {
+        if (node.type === "TemplateElement") reportText(node, node.value.raw);
+      },
+      [`${IN_CLASS_NAME} Literal`](node: Rule.Node) {
+        if (node.type === "Literal" && typeof node.value === "string") reportText(node, node.value);
+      },
+      [`${IN_CLASS_NAME} TemplateElement`](node: Rule.Node) {
         if (node.type === "TemplateElement") reportText(node, node.value.raw);
       },
     };

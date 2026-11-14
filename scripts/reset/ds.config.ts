@@ -9,6 +9,8 @@ export interface DsConfig {
   pagesDir: string;
   layoutComponent?: string;
   knownHallucinations: Record<string, string>;
+  tokenUsage?: (path: string) => string[];
+  tokenCss?: (tokens: { path: string; cssVar: string; value: string }[]) => string;
   agent: {
     command: string;
     args: string[];

@@ -32,6 +32,6 @@ export function formatTokens(category?: string): TextResult {
   if (category && !categories.includes(category)) {
     return { ok: false, message: `Unknown token category "${category}". Categories: ${categories.join(", ")}.` };
   }
-  const rows = listTokens(category).map((entry) => [`token("${entry.path}")`, `var(${entry.cssVar})`, entry.value]);
+  const rows = listTokens(category).map((entry) => [entry.usage.join(" "), `var(${entry.cssVar})`, entry.value]);
   return { ok: true, text: table([["TSX", "CSS", "VALUE"], ...rows]) };
 }

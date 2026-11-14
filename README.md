@@ -87,6 +87,8 @@ Run `pnpm starter:reset`. It removes the sample components, eval tasks and resul
 | `componentsDir`, `generatedDir`, `playgroundDir`, `pagesDir` | Where components, generated docs, the playground and scaffolded pages live |
 | `layoutComponent` | The component `ds/prefer-stack` tells agents to use. Leave it out to turn the rule off. |
 | `knownHallucinations` | Names agents invent, each mapped to the real export to use instead |
+| `tokenUsage` | Optional. How code refers to a token, as a list of forms, used by `ds tokens list`, the generated docs and lint messages. Defaults to `token("<path>")`; a utility-class system can return classes such as `bg-primary`. |
+| `tokenCss` | Optional. Turns the tokens into the generated `tokens.css`. Defaults to custom properties on `:root`; a Tailwind system can return a `@theme` block. |
 | `agent` | The agent CLI that `evals:agent` and `demo:compare` run |
 
 ## Commands
@@ -116,7 +118,7 @@ Run `pnpm starter:reset`. It removes the sample components, eval tasks and resul
 | --- | --- | --- |
 | Type-check | `tsc/TS<code>` | Guessed props, missing imports |
 | Lint (`lint/rules/`) | `ds/no-unknown-imports` | Imports that `@ds` does not export, with a tailored message for known hallucinations |
-| | `ds/no-raw-values` | Hex colors and px sizes in `style` props and CSS files |
+| | `ds/no-raw-values` | Hex colors and px sizes in `style` props, `className` (such as `p-[16px]`) and CSS files |
 | | `ds/prefer-stack` | Host elements styled with flex, grid or gap |
 | Audit (`lint/audit/`) | `audit/textfield-label` | A `TextField` without a visible label |
 | | `audit/one-primary-button` | More than one primary `Button` in a file |

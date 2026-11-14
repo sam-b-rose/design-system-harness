@@ -6,7 +6,7 @@ import { componentDir, componentFile, listComponents } from "../cli/lib/componen
 import { componentDocPath } from "../cli/lib/docs";
 import { exportNames } from "../cli/lib/exports";
 import { fromRoot } from "../cli/lib/paths";
-import { listTokens } from "../cli/lib/tokens";
+import { listTokens, type FlatToken } from "../cli/lib/tokens";
 import { loadCompilerOptions } from "../cli/lib/typescript";
 
 const SCRIPT = "scripts/build-docs.ts";
@@ -123,20 +123,26 @@ function buildComponentDoc(program: ts.Program, name: string): ComponentDoc {
 
 function buildTokensDoc(): string {
   const rows = listTokens().map(
-    (entry) => `| \`token("${entry.path}")\` | \`${entry.cssVar}\` | \`${entry.value}\` | ${entry.category} |`,
+    (entry) =>
+      `| ${entry.usage.map((form) => `\`${form}\``).join(", ")} | \`${entry.cssVar}\` | \`${entry.value}\` | ${entry.category} |`,
   );
+  const example = listTokens()[0]?.usage[0];
   return [
     MARKDOWN_HEADER,
     `# ${config.name} tokens`,
-    `> Every design token. In TSX, call \`token("<path>")\` from \`${config.alias}\`. In CSS, use \`var(<css variable>)\`. Never write the raw value.`,
+    `> Every design token. In TSX, write the form in the TSX column${example ? `, such as \`${example}\`` : ""}. In CSS, use \`var(<css variable>)\`. Never write the raw value.`,
     ["| TSX | CSS variable | Value | Category |", "| --- | --- | --- | --- |", ...rows].join("\n"),
     "",
   ].join("\n\n");
 }
 
+function rootCss(entries: FlatToken[]): string {
+  return [":root {", ...entries.map((entry) => `  ${entry.cssVar}: ${entry.value};`), "}"].join("\n");
+}
+
 function buildTokensCss(): string {
-  const declarations = listTokens().map((entry) => `  ${entry.cssVar}: ${entry.value};`);
-  return [CSS_HEADER, ":root {", ...declarations, "}", ""].join("\n");
+  const toCss = config.tokenCss ?? rootCss;
+  return `${CSS_HEADER}\n${toCss(listTokens())}\n`;
 }
 
 function buildIndex(docs: ComponentDoc[]): string {

@@ -43,7 +43,7 @@ test("tokens list filters by category and rejects unknown categories", () => {
   const [first] = listTokens();
   const other = listTokens().find((entry) => entry.category !== first.category);
   const filtered = formatTokens(first.category);
-  assert.ok(filtered.ok && filtered.text.includes(`token("${first.path}")`));
-  assert.ok(filtered.ok && (!other || !filtered.text.includes(`token("${other.path}")`)));
+  assert.ok(filtered.ok && filtered.text.includes(first.usage[0]));
+  assert.ok(filtered.ok && (!other || !filtered.text.includes(other.usage[0])));
   assert.equal(formatTokens("no-such-category").ok, false);
 });

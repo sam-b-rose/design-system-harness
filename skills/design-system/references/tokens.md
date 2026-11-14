@@ -2,7 +2,7 @@
 
 ## Rules
 
-1. Never write a hex color or a px value in a `style` prop or a CSS file.
+1. Never write a hex color or a px value in a `style` prop, a `className` (such as `p-[16px]`) or a CSS file.
 2. In TSX, use `token("<path>")` from `@ds`. In CSS, use the matching `var(--...)`.
 3. Prefer a component prop over a style. `Stack` and `Card` take `space` token names directly: `gap="md"`, `padding="lg"`.
 4. Run `ds tokens list` for values, or `ds tokens list --category color` for one category.

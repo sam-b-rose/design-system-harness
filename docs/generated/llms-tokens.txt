@@ -2,7 +2,7 @@
 
 # Starter DS tokens
 
-> Every design token. In TSX, call `token("<path>")` from `@ds`. In CSS, use `var(<css variable>)`. Never write the raw value.
+> Every design token. In TSX, write the form in the TSX column, such as `token("color.bg.page")`. In CSS, use `var(<css variable>)`. Never write the raw value.
 
 | TSX | CSS variable | Value | Category |
 | --- | --- | --- | --- |
