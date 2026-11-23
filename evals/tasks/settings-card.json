@@ -2,27 +2,10 @@
   "id": "settings-card",
   "prompt": "Build a settings card titled \"Profile\" with a display name field, a success message saying the changes were saved, and a primary \"Save changes\" button. Export it as SettingsCard.",
   "target": "playground/src/pages/SettingsCard.tsx",
-  "checks": [
-    "tsc",
-    "ds/no-unknown-imports",
-    "ds/no-raw-values",
-    "ds/prefer-stack"
-  ],
-  "good": [
-    "good/settings-card.tsx"
-  ],
-  "bad": [
-    {
-      "fixture": "bad/settings-card.raw-div.tsx",
-      "rule": "ds/prefer-stack"
-    },
-    {
-      "fixture": "bad/settings-card.raw-values.tsx",
-      "rule": "ds/no-raw-values"
-    },
-    {
-      "fixture": "bad/settings-card.guessed-props.tsx",
-      "rule": "tsc/TS2322"
-    }
+  "intent": [
+    { "element": "Card", "count": 1, "rule": "card/one-topic" },
+    { "element": "Heading", "props": { "level": 2 }, "rule": "heading/card-starts-h2" },
+    { "element": "Alert", "props": { "tone": "success" } },
+    { "element": "Button", "props": { "variant": "primary" }, "count": 1, "rule": "button/one-primary" }
   ]
 }

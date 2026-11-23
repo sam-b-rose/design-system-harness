@@ -1,24 +1,24 @@
 import config from "../ds.config";
-import { formatReport, resolveTargets, runCheck } from "./lib/check";
+import { formatReport, resolveTargets, runCheck } from "../checks";
+import { runVisualCheck } from "../checks/visual";
 import { getComponentDoc } from "./lib/docs";
 import { formatExports, formatTokens, type TextResult } from "./lib/format";
 import { listTemplates, scaffold } from "./lib/scaffold";
+import { PAGES_DIR, PLAYGROUND_DIR } from "./lib/paths";
 import { formatSearch } from "./lib/search";
-import { runVisualCheck } from "./lib/visual";
 
-const cli = config.cliName;
 
-const USAGE = `Usage: ${cli} <command>
+const USAGE = `Usage: ds <command>
 
-  ${cli} docs get <Component>          Print a component's docs: props, examples, Do/Don't
-  ${cli} docs search <query>           Find the docs sections that best match a query
-  ${cli} exports                       List everything ${config.alias} exports
-  ${cli} tokens list [--category <c>]  List design tokens
-  ${cli} add <${listTemplates().join("|")}> <name>          Create a starting file in ${config.pagesDir}/
-  ${cli} check [path...] [--visual]    Type-check, lint and audit files (default: ${config.playgroundDir}/)
+  ds docs get <Component>          Print a component's docs: props, examples, Do/Don't
+  ds docs search <query>           Find the docs sections that best match a query
+  ds exports                       List everything ${config.alias} exports
+  ds tokens list [--category <c>]  List design tokens
+  ds add <${listTemplates().join("|")}> <name>          Create a starting file in ${PAGES_DIR}/
+  ds check [path...] [--visual]    Type-check, lint and audit files (default: ${PLAYGROUND_DIR}/)
                                      --visual also renders each page in a browser and saves a screenshot
 
-Run it through pnpm: pnpm ${cli} <command>`;
+Run it through pnpm: pnpm ds <command>`;
 
 function fail(message: string, exitCode: number): never {
   console.error(message);

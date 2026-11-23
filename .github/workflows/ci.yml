@@ -10,12 +10,14 @@ on:
       - "AGENTS.md"
       - "skills/**"
       - "cli/**"
-      - "lint/**"
+      - "checks/**"
+      - "mcp/**"
       - "evals/**"
       - "scripts/**"
       - "tests/**"
       - "playground/**"
       - "ds.config.ts"
+      - ".claude/**"
       - "package.json"
       - "pnpm-lock.yaml"
       - "tsconfig.json"
@@ -36,21 +38,3 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
-      - run: pnpm evals
-
-  starter-reset:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm starter:reset
-      - run: pnpm docs:check
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm evals

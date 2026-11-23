@@ -6,12 +6,12 @@ Reach for `Stack` whenever elements need space between them. Nest stacks to comb
 
 ## Do
 
-- Use `Stack` for all spacing between elements.
-- Nest a horizontal `Stack` inside a vertical one for rows of actions.
-- Set `gap` with a `space` token name: `xs`, `sm`, `md`, `lg` or `xl`.
+- `stack/all-spacing` Use `Stack` for all spacing between elements.
+- `stack/nest-for-rows` Nest a horizontal `Stack` inside a vertical one for rows of actions.
+- `stack/gap-token` Set `gap` with a `space` token name: `xs`, `sm`, `md`, `lg` or `xl`.
 
 ## Don't
 
-- Don't import `Box`, `Flex`, `Grid` or `Container`. They do not exist.
-- Don't write a `<div>` with `display: flex` or `gap`. Use `Stack`.
-- Don't pass pixel values to `gap`.
+- `stack/no-invented-layout` Don't import `Box`, `Flex`, `Grid` or `Container`. They do not exist.
+- `stack/no-flex-div` Don't write a `<div>` with `display: flex` or `gap`. Use `Stack`.
+- `stack/no-px-gap` Don't pass pixel values to `gap`.

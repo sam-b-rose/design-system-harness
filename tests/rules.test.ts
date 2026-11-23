@@ -3,17 +3,17 @@ import parser from "@typescript-eslint/parser";
 import { RuleTester } from "eslint";
 import config from "../ds.config";
 import { exportNames } from "../cli/lib/exports";
-import { onePrimaryButton } from "../lint/audit/one-primary-button";
-import { textfieldLabel } from "../lint/audit/textfield-label";
-import { noRawValues } from "../lint/rules/no-raw-values";
-import { noUnknownImports } from "../lint/rules/no-unknown-imports";
-import { preferStack } from "../lint/rules/prefer-stack";
+import { onePrimaryButton } from "../checks/audit/one-primary-button";
+import { textfieldLabel } from "../checks/audit/textfield-label";
+import { noRawValues } from "../checks/rules/no-raw-values";
+import { noUnknownImports } from "../checks/rules/no-unknown-imports";
+import { preferStack } from "../checks/rules/prefer-stack";
 
 const ruleTester = new RuleTester({
   languageOptions: { parser, parserOptions: { ecmaFeatures: { jsx: true } } },
 });
 
-const { alias, cliName, knownHallucinations, layoutComponent } = config;
+const { alias, knownHallucinations, layoutComponent } = config;
 
 test("ds/no-unknown-imports", () => {
   ruleTester.run("no-unknown-imports", noUnknownImports, {
@@ -25,12 +25,12 @@ test("ds/no-unknown-imports", () => {
       ...Object.entries(knownHallucinations).map(([name, replacement]) => ({
         code: `import { ${name} } from "${alias}";`,
         errors: [
-          { message: `${name} is not exported by ${alias}. Use ${replacement} (see: ${cliName} docs get ${replacement}).` },
+          { message: `${name} is not exported by ${alias}. Use ${replacement} (see: ds docs get ${replacement}).` },
         ],
       })),
       {
         code: `import { Widget } from "${alias}";`,
-        errors: [{ message: new RegExp(`^Widget is not exported by ${alias}\\. Real exports: .* \\(see: ${cliName} exports\\)\\.$`) }],
+        errors: [{ message: new RegExp(`^Widget is not exported by ${alias}\\. Real exports: .* \\(see: ds exports\\)\\.$`) }],
       },
       {
         code: `import * as DS from "${alias}";`,
@@ -81,8 +81,8 @@ test("ds/no-raw-values", () => {
   });
 });
 
-test("ds/prefer-stack", { skip: !layoutComponent }, () => {
-  const message = `Raw <div> with flex, grid or gap styling. Use ${layoutComponent} for layout and spacing (see: ${cliName} docs get ${layoutComponent}).`;
+test("ds/prefer-stack", () => {
+  const message = `Raw <div> with flex, grid or gap styling (rule stack/no-flex-div). Use ${layoutComponent} for layout and spacing (see: ds docs get ${layoutComponent}).`;
   ruleTester.run("prefer-stack", preferStack, {
     valid: [
       `const a = <Stack gap="md"><p>text</p></Stack>;`,

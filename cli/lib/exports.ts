@@ -1,7 +1,7 @@
 import ts from "typescript";
 import config from "../../ds.config";
 import { listComponents } from "./components";
-import { fromRoot } from "./paths";
+import { ENTRY, fromRoot } from "./paths";
 import { loadCompilerOptions } from "./typescript";
 
 export interface DsExport {
@@ -14,7 +14,7 @@ let cached: DsExport[] | undefined;
 export function getExports(): DsExport[] {
   if (cached) return cached;
 
-  const entry = fromRoot(config.entry);
+  const entry = fromRoot(ENTRY);
   const program = ts.createProgram([entry], loadCompilerOptions());
   const checker = program.getTypeChecker();
   const source = program.getSourceFile(entry);

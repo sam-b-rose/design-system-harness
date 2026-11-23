@@ -2,27 +2,10 @@
   "id": "empty-state",
   "prompt": "Build an empty state for a projects page: the title \"No projects yet\", one sentence of muted helper text, and a primary \"Create project\" button, grouped on a surface and centered. Export it as EmptyState.",
   "target": "playground/src/pages/EmptyState.tsx",
-  "checks": [
-    "tsc",
-    "ds/no-unknown-imports",
-    "ds/no-raw-values",
-    "ds/prefer-stack"
-  ],
-  "good": [
-    "good/empty-state.tsx"
-  ],
-  "bad": [
-    {
-      "fixture": "bad/empty-state.raw-div.tsx",
-      "rule": "ds/prefer-stack"
-    },
-    {
-      "fixture": "bad/empty-state.raw-values.tsx",
-      "rule": "ds/no-raw-values"
-    },
-    {
-      "fixture": "bad/empty-state.guessed-props.tsx",
-      "rule": "tsc/TS2322"
-    }
+  "intent": [
+    { "element": "Card", "count": 1, "rule": "card/one-topic" },
+    { "element": "Heading", "props": { "level": 2 }, "rule": "heading/card-starts-h2" },
+    { "element": "Stack", "props": { "align": "center" } },
+    { "element": "Button", "props": { "variant": "primary" }, "count": 1, "rule": "button/one-primary" }
   ]
 }

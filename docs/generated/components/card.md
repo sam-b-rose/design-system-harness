@@ -47,12 +47,12 @@ export function SettingsSection() {
 
 ## Do
 
-- Use `Card` to group one topic: a form, a settings section, an empty state.
-- Put a `Stack` directly inside the card to space its content.
-- Set `padding` with a `space` token name.
+- `card/one-topic` Use `Card` to group one topic: a form, a settings section, an empty state.
+- `card/stack-inside` Put a `Stack` directly inside the card to space its content.
+- `card/padding-token` Set `padding` with a `space` token name.
 
 ## Don't
 
-- Don't build a card from a `<div>` with a border and background. Use `Card`.
-- Don't nest a `Card` inside another `Card`.
-- Don't import `Container` or `Box` for grouping. They do not exist.
+- `card/no-div-card` Don't build a card from a `<div>` with a border and background. Use `Card`.
+- `card/no-nesting` Don't nest a `Card` inside another `Card`.
+- `card/no-invented-containers` Don't import `Container` or `Box` for grouping. They do not exist.

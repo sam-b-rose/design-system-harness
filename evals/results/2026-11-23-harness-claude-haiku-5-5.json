@@ -1,0 +1,93 @@
+{
+  "generatedBy": "evals/run.ts",
+  "date": "2026-11-23",
+  "variant": "harness",
+  "agent": "claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands --model claude-haiku-5-5",
+  "models": [
+    "claude-haiku-5-5"
+  ],
+  "passed": 5,
+  "total": 5,
+  "results": [
+    {
+      "task": "account-page",
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 7,
+      "seconds": 26,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "unmetIntent": [],
+      "violations": []
+    },
+    {
+      "task": "empty-state",
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 10,
+      "seconds": 34,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "unmetIntent": [],
+      "violations": []
+    },
+    {
+      "task": "login-form",
+      "passed": true,
+      "problems": 0,
+      "intentMet": 5,
+      "intentTotal": 5,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 6,
+      "seconds": 23,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "unmetIntent": [],
+      "violations": []
+    },
+    {
+      "task": "settings-card",
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 6,
+      "seconds": 25,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "unmetIntent": [],
+      "violations": []
+    },
+    {
+      "task": "signup-form",
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 6,
+      "seconds": 24,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "unmetIntent": [],
+      "violations": []
+    }
+  ]
+}

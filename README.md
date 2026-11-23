@@ -1,52 +1,23 @@
-# ds-agent-starter
+# design-system-harness
 
-A small, working starter for making a design system reliable for coding agents. It shows the full loop: the agent retrieves authoritative docs, generates UI through supported paths, and a deterministic check tells it what to fix. The bundled design system is tiny and meant to be replaced; the toolkit around it is the point.
+A working example of a design system harness: the scaffolding that lets a coding agent build UI with your design system and keeps it on-system. Each piece of the harness is in this repo, small enough to read in one sitting, and tested.
+
+It follows the model in Robin Di Capua's [A design system harness](https://brandstructure.design/articles/a-design-system-harness/). The design system provides the *what*: tokens, component contracts and usage rules. The harness provides the *how*: it delivers that knowledge to the agent, constrains its choices and verifies its output.
 
 Companion to the blog post: _link to be added when the post is published_.
 
-## The five essentials
+[docs/harness.md](docs/harness.md) draws the whole harness in one diagram and covers its two mechanisms, progressive disclosure and guardrails.
 
-1. **Machine-readable docs, compiled from source.** `llms.txt` and per-component Markdown are built from TSDoc, one `*.docs.md` per component and real example files. Nothing agent-facing is written twice.
-2. **A small agent instruction file.** `AGENTS.md` is a router under 60 lines: numbered rules, the commands, and a link to a skill that loads detail on demand.
-3. **A reliable retrieval path.** The `ds` CLI prints docs, the allow-list of real exports and the tokens as plain text, so any agent with a shell can use it.
-4. **A generate → check → fix loop.** `ds add` scaffolds from real components, and `ds check` runs deterministic validators whose messages say what to do next.
-5. **A small regression suite.** Known-good and known-bad outputs for representative tasks assert that the validators catch each failure mode.
+## Try it
 
-The loop is drawn in [docs/loop.md](docs/loop.md).
-
-## Where each one lives
-
-| Essential | In the repo | Tag |
-| --- | --- | --- |
-| 1. Machine-readable docs | `scripts/build-docs.ts` → `docs/generated/` | `m1-first-loop`, `m2-skill-and-retrieval` |
-| 2. Instruction file | `AGENTS.md`, `skills/design-system/` | `m1-first-loop`, `m2-skill-and-retrieval` |
-| 3. Retrieval path | `cli/`, optional `mcp/` | `m2-skill-and-retrieval`, `m5-stretch` |
-| 4. Generate → check → fix | `cli/templates/`, `cli/lib/check.ts`, `lint/`, `cli/hook.ts` | `m3-scaffold-and-audit` |
-| 5. Regression suite | `evals/`, `tests/`, `.github/workflows/ci.yml` | `m4-evals-and-ci`, `m5-stretch` |
-
-`ds.config.ts` ties them together. It holds the import alias, the CLI name and the known hallucinations, and the lint rules, generated docs and evals all read from it.
-
-Each milestone is a git tag, so you can read the repo at each stage:
-
-| Tag | What it adds |
-| --- | --- |
-| `m1-first-loop` | One task end to end: three components, tokens, `docs:build`, `AGENTS.md`, `ds docs get`, `ds check` with two rules, the login form eval |
-| `m2-skill-and-retrieval` | The remaining components, the skill and its references, `ds docs search`, `ds exports`, `ds tokens list` |
-| `m3-scaffold-and-audit` | `ds add`, the `prefer-stack` rule, the component audit |
-| `m4-evals-and-ci` | The full eval set, CI, `starter:reset`, `demo:compare` |
-| `m5-stretch` | The MCP server, `ds check --visual`, `evals:agent` |
-
-## Quickstart
-
-Requires Node 20+ and pnpm. TypeScript is pinned to 6.x because the docs generator and the allow-list use the TypeScript compiler API.
+Requires Node 20+ and pnpm.
 
 ```bash
 pnpm i
-pnpm docs:build
-pnpm evals
+pnpm test
 ```
 
-Then walk the loop by hand:
+Walk the loop an agent follows:
 
 ```bash
 pnpm ds docs get Stack
@@ -63,103 +34,34 @@ playground/src/pages/LoginForm.tsx:1:10  ds/no-unknown-imports
 
 `pnpm dev` runs the playground and lists every page in `playground/src/pages/`.
 
-## Adopting this starter
+## The pieces
 
-Run `pnpm starter:reset`. It removes the sample components, eval tasks and results, templates and demo results, replaces the sample-specific instructions with TODOs, and leaves scaffolding where every check still passes. Then:
+### The system: `packages/ds/`
 
-- **Replace** `packages/ds/src` with your components and tokens.
-  - Each component needs `<Name>.tsx` exporting `<Name>Props` with TSDoc on each prop, a `<Name>.docs.md`, and `examples/*.tsx`. Export it from `index.ts`.
-  - `tokens/tokens.ts` must export `tokens` (a nested object of string values) and `cssVarName`.
-- **Keep** `cli/`, `lint/rules/`, `scripts/`, `mcp/`, `tests/`, `demo/compare.ts` and the runners in `evals/` (`run.ts`, `agent.ts`, `agent-run.ts`).
-- **Edit**:
-  - `ds.config.ts`: see the table below. Each known hallucination feeds the lint message, the generated allow-list and a bad eval fixture.
-  - `AGENTS.md` and `skills/design-system/`: your rules, routing table and Incorrect/Correct pairs.
-  - `cli/templates/`: your canonical page and form. Each file becomes a `ds add` kind.
-  - `lint/audit/`: checks specific to your components.
-  - `evals/tasks/` and `evals/fixtures/`: your representative tasks, with one good output and a bad output per failure mode.
+Six React components, typed tokens, and one `<Name>.docs.md` per component with usage notes and Do/Don't rules. The harness reads everything from here. Nothing agent-facing is written twice.
 
-| `ds.config.ts` field | What it sets |
-| --- | --- |
-| `name` | The design system's name in the generated docs |
-| `alias` | The import path, `@ds`. Change `paths` in `tsconfig.json` to match; a test fails if they disagree. |
-| `cliName` | The CLI's name in usage text and error messages |
-| `entry` | The only public entry file. The allow-list is read from it. |
-| `componentsDir`, `generatedDir`, `playgroundDir`, `pagesDir` | Where components, generated docs, the playground and scaffolded pages live |
-| `layoutComponent` | The component `ds/prefer-stack` tells agents to use. Leave it out to turn the rule off. |
-| `knownHallucinations` | Names agents invent, each mapped to the real export to use instead |
-| `tokenUsage` | Optional. How code refers to a token, as a list of forms, used by `ds tokens list`, the generated docs and lint messages. Defaults to `token("<path>")`; a utility-class system can return classes such as `bg-primary`. |
-| `tokenCss` | Optional. Turns the tokens into the generated `tokens.css`. Defaults to custom properties on `:root`; a Tailwind system can return a `@theme` block. |
-| `agent` | The agent CLI that `evals:agent` and `demo:compare` run |
+Every Do and Don't rule has an ID, such as `button/one-primary`. That makes rules addressable: checks cite them in their messages, review findings cite them, and eval tasks name the rule each intent check measures. `tests/guidance.test.ts` fails if anything cites a rule that no longer exists.
 
-## Commands
+### Map: `AGENTS.md` and `llms.txt`
 
-| Command | What it does |
-| --- | --- |
-| `pnpm ds docs get <Component>` | Prints a component's generated docs |
-| `pnpm ds docs search <query>` | Ranks the generated docs sections that match a query |
-| `pnpm ds exports` | Prints the allow-list of real exports |
-| `pnpm ds tokens list [--category color]` | Prints design tokens |
-| `pnpm ds add <page\|form> <name>` | Creates a starting file in `playground/src/pages/` |
-| `pnpm ds check [path...] [--visual]` | Type-checks, lints and audits `playground/` or the given paths. `--visual` also renders each page in a browser. |
-| `pnpm mcp` | Starts the optional read-only MCP server on stdio |
-| `pnpm docs:build` / `pnpm docs:check` | Compiles the generated files / fails if they are out of date |
-| `pnpm evals` | Asserts good fixtures pass `ds check` and bad fixtures fail with the expected rule |
-| `pnpm test` | Tests for the lint rules, the CLI, the MCP server and the agent-facing files |
-| `pnpm typecheck` | Runs `tsc --noEmit` over the whole repo |
-| `pnpm lint` | Runs `ds check` on `playground/` |
-| `pnpm evals:agent [--baseline] [--model <id>] [task...]` | Runs an agent on every task and scores it with `ds check` |
-| `pnpm demo:compare [--model <id>] [task]` | Runs an agent on one task with and without the toolkit |
-| `pnpm dev` / `pnpm build` | Runs / builds the playground with Vite |
-| `pnpm starter:reset` | Removes the sample content |
+`AGENTS.md` is under 60 lines: four rules, the commands, and which skill to read for the task. A test keeps it that short. `docs/generated/llms.txt` indexes the generated docs and lists every export, plus the names agents commonly invent that do not exist.
 
-## What `ds check` runs
+### Recipes: `skills/`
 
-| Stage | Rule IDs | Catches |
-| --- | --- | --- |
-| Type-check | `tsc/TS<code>` | Guessed props, missing imports |
-| Lint (`lint/rules/`) | `ds/no-unknown-imports` | Imports that `@ds` does not export, with a tailored message for known hallucinations |
-| | `ds/no-raw-values` | Hex colors and px sizes in `style` props, `className` (such as `p-[16px]`) and CSS files |
-| | `ds/prefer-stack` | Host elements styled with flex, grid or gap |
-| Audit (`lint/audit/`) | `audit/textfield-label` | A `TextField` without a visible label |
-| | `audit/one-primary-button` | More than one primary `Button` in a file |
-| Visual (`--visual` only) | `visual/render-error` | A page that throws or renders nothing in a real browser |
+- `build-ui` covers scaffolding, retrieving docs, writing the code and checking it. Its routing table sends the agent to the one reference or command a task needs.
+- `review-ui` runs `ds check`, then reviews the rest against the component rules and cites a rule ID for every finding. Anything that looks wrong without a rule to cite goes in a separate list, which shows where the design system needs a new rule.
 
-Every message says what to do next. Inline `eslint-disable` comments are ignored. The exit code is 0 for no problems, 1 for problems, and 2 when the check could not run (a bad path, or `--visual` without Playwright). No LLM is involved.
+### Ingredients: `docs/generated/`
 
-### The `--visual` flag
+`scripts/build-docs.ts` compiles per-component Markdown from the prop types (TSDoc), the `*.docs.md` files and the example files. It also writes the tokens reference, `llms.txt`, and the allow-list and token paths in the skill references. `pnpm docs:check` fails in CI when a generated file is out of date.
 
-```bash
-pnpm ds check --visual
-```
+### Equipment: the `ds` CLI, the MCP server and the edit hook
 
-With `--visual`, `ds check` runs the stages above and then starts the playground, opens each checked page from `playground/src/pages/` in headless Chromium and saves a full-page screenshot to `playground/.screenshots/<Page>.png` (git-ignored). A page fails with `visual/render-error` if it throws, logs a console error or renders nothing:
+- **`ds` CLI (`cli/`):** prints docs, the allow-list of exports and the tokens as plain text, so any agent with a shell can retrieve them. `ds add` scaffolds a page or form from a template that already passes the checks.
+- **MCP server (`mcp/server.ts`):** exposes the same four read-only commands as tools for agents without a shell. Each tool calls the same function as the CLI, so the two cannot drift.
+- **Edit hook (`.claude/settings.json` → `cli/hook.ts`):** a Claude Code `PostToolUse` hook that runs `ds check` on every file the agent writes in `playground/`. A clean file produces no output. A file with problems sends the report back to the agent, which fixes it in the same session. For another agent, call `runHook` from `cli/hook.ts` with that agent's hook payload, or run `pnpm ds check <file>` from its hook.
 
-```
-playground/src/pages/BrokenPage.tsx:1:1  visual/render-error
-  BrokenPage does not render cleanly in the browser: Cannot read properties of undefined (reading 'text') Fix the runtime error, then run `ds check --visual` again (screenshot: playground/.screenshots/BrokenPage.png).
-```
-
-It is off by default because it needs Playwright, which is not a dependency of this repo. Install it once:
-
-```bash
-pnpm add -D playwright
-```
-
-```bash
-pnpm exec playwright install chromium
-```
-
-Limits: it does not compare screenshots against a reference, so it catches pages that break, not pages that look wrong. A page file must export a component with the same name as the file, which `ds add` does for you.
-
-### The edit hook
-
-`AGENTS.md` tells the agent to run `ds check`, but nothing makes it. `.claude/settings.json` adds a Claude Code `PostToolUse` hook that runs `cli/hook.ts` after every `Write`, `Edit` or `MultiEdit`. It checks only the edited file, and only inside `playground/`. A clean file produces no output. A file with problems sends the `ds check` report back to the agent with exit code 2, so it fixes them in the same session. Each run takes about 1.5 seconds.
-
-The hook reads Claude Code's hook input. For another agent, call `runHook` from `cli/hook.ts` with that agent's hook payload, or run `pnpm ds check <file>` from its hook.
-
-## Optional: MCP
-
-`mcp/server.ts` exposes the four read-only retrieval commands as MCP tools: `docs_get`, `docs_search`, `exports` and `tokens_list`. Each tool calls the same library function as the CLI command, so the two cannot drift. The CLI is the primary path; use MCP for agents without a shell.
+To use the MCP server with Claude Code:
 
 ```json
 {
@@ -172,38 +74,82 @@ The hook reads Claude Code's hook input. For another agent, call `runHook` from 
 }
 ```
 
-## The regression suite
+### Verification, tier 1: deterministic checks (`checks/`)
 
-`evals/tasks/*.json` holds five tasks: login form, settings card, empty state, sign-up form with errors, and account page. Each has a prompt, a target file and fixtures in `evals/fixtures/`:
+`ds check` type-checks, lints and audits files, then reports each problem with what to do next. No LLM is involved.
 
-- `good/<task>.tsx` must pass `ds check`.
-- `bad/<task>.<failure>.tsx` must fail with the rule named in the task file.
-- For every entry in `knownHallucinations`, the runner swaps the real component for the hallucinated one in the good fixture and asserts that the message names the replacement.
+| Stage | Rule IDs | Catches |
+| --- | --- | --- |
+| Type-check | `tsc/TS<code>` | Guessed props, missing imports |
+| Lint (`checks/rules/`) | `ds/no-unknown-imports` | Imports `@ds` does not export, with the replacement for known hallucinations |
+| | `ds/no-raw-values` | Hex colors and px sizes in `style`, `className` and CSS files |
+| | `ds/prefer-stack` | Host elements styled with flex, grid or gap |
+| Audit (`checks/audit/`) | `audit/textfield-label` | A `TextField` without a visible label |
+| | `audit/one-primary-button` | More than one primary `Button` in a file |
+| Browser (`--visual`) | `visual/render-error` | A page that throws or renders nothing |
+| | `a11y/<axe rule>` | Accessibility violations found by axe-core on the rendered page |
 
-CI runs `docs:check`, `typecheck`, `lint`, `test` and `evals`, plus a second job that runs `starter:reset` and repeats the checks.
+Inline `eslint-disable` comments are ignored. The exit code is 0 for no problems, 1 for problems, and 2 when the check could not run.
 
-## Agent evals
+`--visual` starts the playground, opens each checked page in headless Chromium, runs axe-core and saves a screenshot to `playground/.screenshots/`. It needs Playwright, which is not a dependency:
 
-`pnpm evals:agent` runs a real agent on each task prompt in a temporary copy of the repo, scores what it wrote with `ds check`, and records pass or fail, turns, the model and every rule violation to `evals/results/`. It is not part of CI, because it needs an agent CLI and credentials.
+```bash
+pnpm add -D playwright && pnpm exec playwright install chromium
+```
 
-- `--baseline` runs without the toolkit: the agent gets the playground and the design system as a compiled package in `node_modules` (JavaScript and type declarations), the way most apps consume one. No source, `AGENTS.md`, skill, CLI or generated docs.
-- `--model <id>` passes a model to the agent CLI. Without it the CLI's default is used.
-- The agent command is set in `ds.config.ts` under `agent`. It defaults to the `claude` CLI.
+`tests/guardrails.test.ts` keeps the checks honest. Each eval task has a good fixture that must pass, and a bad fixture per failure mode that must be caught by the right rule. The test also writes each known hallucination from `ds.config.ts` into a fixture and checks that the error names the real component.
 
-One run of each combination is committed in `evals/results/`:
+### Verification, tier 2: evals (`evals/`)
 
-| Model | With the toolkit | Baseline | Baseline violations |
+`pnpm evals` gives a real agent each task prompt in a temporary copy of the repo. It scores the result two ways:
+
+- **`ds check`:** did the agent follow the rules?
+- **Intent checks:** did it make the right choices? Each task in `evals/tasks/` lists the JSX the result should contain. For example, the account page needs exactly one `<Heading level={1}>` and exactly one primary `Button`, so "Delete account" must not be a second primary action. Most intent checks name the guidance rule they measure.
+
+Results go to `evals/results/`. `pnpm evals --save-baseline` records the team baseline in `evals/baseline.json`. Later runs report each task that regressed or improved against it, which shows where the system or the harness needs work. No baseline is committed yet.
+
+`pnpm evals --no-harness` runs the same tasks without the harness: the agent gets the playground and the design system as a compiled package in `node_modules`, the way most apps consume one. `pnpm evals:compare [task]` runs one task both ways and writes a side-by-side report with the code the agent wrote to [evals/compare/](evals/compare/README.md).
+
+Neither command runs in CI, because both need an agent CLI and credentials. `ds.config.ts` sets the agent command, which defaults to the `claude` CLI. `--model <id>` picks the model.
+
+## Results so far
+
+One run of each combination, from before the edit hook and the intent checks existed, so the agents ran `ds check` only because the instructions told them to:
+
+| Model | With the harness | Without | Rules broken without |
 | --- | --- | --- | --- |
-| `claude-fable-5-2` (the CLI default) | 5 of 5 | 5 of 5 | none |
-| `claude-haiku-5-5` | 5 of 5 | 3 of 5 | `ds/prefer-stack` once (a flex `div` used to center content), `ds/no-raw-values` twice (`maxWidth` of `420px` and `400px`) |
+| `claude-fable-5-2` | 5 of 5 | 5 of 5 | none |
+| `claude-haiku-5-5` | 5 of 5 | 3 of 5 | `ds/prefer-stack` once (a flex `div` to center content), `ds/no-raw-values` twice (`maxWidth` of `420px` and `400px`) |
 
-These runs predate the edit hook, so the toolkit agents ran `ds check` only because the instructions told them to. Read these as single runs, not rates. Agents are not deterministic, and five tasks on a six-component design system is a small sample. Neither model imported a component that does not exist. The two `no-raw-values` failures are container widths, which this design system has no token for.
+Read these as single runs, not rates: agents are not deterministic, and five tasks on six components is a small sample. In the committed comparison on the empty state task, both setups met all four intent checks, and only the run without the harness broke rules.
 
-## Before and after
+## What this example leaves out
 
-`pnpm demo:compare` gives one prompt to an agent in the same two setups, scores both with `ds check` and writes Markdown reports, including the code the agent wrote, to [demo/results/](demo/results/README.md). The committed run used `claude-haiku-5-5` on the empty state task, chosen because the Haiku baseline failed it in the agent evals. The baseline failed again with `ds/prefer-stack` and `ds/no-raw-values`; the toolkit run passed. On the login form task, both setups passed with both models.
+- **Visual regression.** `--visual` catches pages that break, not pages that look wrong. It does not compare screenshots against a reference.
+- **Composition and journey rules.** The rules cover single components. Rules for how components combine into templates and flows have no format here yet.
+- **An LLM grader.** Intent checks are deterministic matches on JSX. They can't judge copy or visual hierarchy.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `pnpm ds docs get <Component>` | Prints a component's docs, including its rule IDs |
+| `pnpm ds docs search <query>` | Ranks the docs sections that match a query |
+| `pnpm ds exports` | Prints the allow-list of exports |
+| `pnpm ds tokens list [--category color]` | Prints design tokens |
+| `pnpm ds add <page\|form> <name>` | Creates a starting file in `playground/src/pages/` |
+| `pnpm ds check [path...] [--visual]` | Runs the tier 1 checks on `playground/` or the given paths |
+| `pnpm mcp` | Starts the read-only MCP server on stdio |
+| `pnpm docs:build` / `pnpm docs:check` | Compiles the generated docs / fails if they are out of date |
+| `pnpm test` | Tests the checks, the guardrail fixtures, rule IDs, the CLI, the MCP server, the hook and the agent-facing files |
+| `pnpm typecheck` / `pnpm lint` | `tsc --noEmit` over the repo / `ds check` on `playground/` |
+| `pnpm evals [--no-harness] [--save-baseline] [--model <id>] [task...]` | Runs the tier 2 evals with a real agent |
+| `pnpm evals:compare [--model <id>] [task]` | Runs one task with and without the harness |
+| `pnpm dev` / `pnpm build` | Runs / builds the playground with Vite |
+
+CI runs `docs:check`, `typecheck`, `lint` and `test`.
 
 ## Further reading
 
-- Robin Di Capua, [A design system harness](https://brandstructure.design/articles/a-design-system-harness/) (branDStructure, 7 November 2026). It describes a harness that guides, constrains and verifies an agent. In this repo, `AGENTS.md` and `llms.txt` are the map, the skill is the recipe, the generated docs are the ingredients, and the `ds` CLI, MCP server and edit hook are the equipment. `ds check` is the deterministic tier of verification, and the agent evals compare against a baseline.
-- Kaelig Deloumeau-Prigent, [State of AI in Design Systems](https://state-of-ai-in-design-systems.netlify.app/) (July 2026 snapshot, CC BY 4.0). It surveys how 21 design systems ship tooling for agents. This repo follows several of its findings: docs compiled from the same sources as human docs, short instruction files written as rules with an allow-list, tool-gating through the CLI, and validation loops that make the agent fix failures.
+- Robin Di Capua, [A design system harness](https://brandstructure.design/articles/a-design-system-harness/) (branDStructure, 7 November 2026). The model this repo follows: the map, recipes, ingredients and equipment; progressive disclosure and guardrails; deterministic checks and evals against team baselines.
+- Kaelig Deloumeau-Prigent, [State of AI in Design Systems](https://state-of-ai-in-design-systems.netlify.app/) (July 2026 snapshot, CC BY 4.0). A survey of how 21 design systems ship tooling for agents. This repo follows several of its findings: docs compiled from the same sources as human docs, short instruction files written as rules with an allow-list, tool-gating through the CLI, and validation loops that make the agent fix failures.

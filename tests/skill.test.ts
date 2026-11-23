@@ -1,13 +1,12 @@
 import assert from "node:assert/strict";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { test } from "node:test";
-import config from "../ds.config";
 import { listComponents } from "../cli/lib/components";
 import { fromRoot } from "../cli/lib/paths";
 
-const SKILL = "skills/design-system/SKILL.md";
-const skill = readFileSync(fromRoot(SKILL), "utf8");
+const SKILLS = readdirSync(fromRoot("skills")).map((name) => `skills/${name}/SKILL.md`);
+const read = (file: string) => readFileSync(fromRoot(file), "utf8");
 
 function headingAnchors(markdown: string): string[] {
   return [...markdown.matchAll(/^#{1,6} (.+)$/gm)].map((match) =>
@@ -15,24 +14,29 @@ function headingAnchors(markdown: string): string[] {
   );
 }
 
-test("every link in SKILL.md resolves to a file and heading", () => {
-  const links = [...skill.matchAll(/\]\(([^)#]+)(?:#([^)]+))?\)/g)];
-  assert.ok(links.length > 0);
-  for (const [, target, anchor] of links) {
-    const file = join(fromRoot(dirname(SKILL)), target);
-    assert.ok(existsSync(file), `${target} does not exist`);
-    if (anchor) {
-      assert.ok(headingAnchors(readFileSync(file, "utf8")).includes(anchor), `${target} has no heading #${anchor}`);
+for (const skill of SKILLS) {
+  test(`${skill} names itself after its folder`, () => {
+    assert.match(read(skill), new RegExp(`^---\\nname: ${dirname(skill).split("/")[1]}\\n`));
+  });
+
+  test(`every link in ${skill} resolves to a file and heading`, () => {
+    for (const [, target, anchor] of read(skill).matchAll(/\]\(([^)#]+)(?:#([^)]+))?\)/g)) {
+      const file = join(fromRoot(dirname(skill)), target);
+      assert.ok(existsSync(file), `${target} does not exist`);
+      if (anchor) {
+        assert.ok(headingAnchors(readFileSync(file, "utf8")).includes(anchor), `${target} has no heading #${anchor}`);
+      }
     }
-  }
-});
+  });
+}
 
-test("SKILL.md routes to every component", () => {
+test("the build-ui skill routes to every component", () => {
+  const skill = read("skills/build-ui/SKILL.md");
   for (const name of listComponents()) {
-    assert.ok(skill.includes(`${config.cliName} docs get ${name}`), `SKILL.md has no route that reads ${name}`);
+    assert.ok(skill.includes(`ds docs get ${name}`), `build-ui has no route that reads ${name}`);
   }
 });
 
-test("SKILL.md states the completion rule", () => {
-  assert.match(skill, /A task is not complete until `ds check` passes\./);
+test("the build-ui skill states the completion rule", () => {
+  assert.match(read("skills/build-ui/SKILL.md"), /A task is not complete until `ds check` passes\./);
 });

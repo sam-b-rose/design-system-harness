@@ -23,7 +23,7 @@ export function formatExports(): string {
     "Not exported (common mistakes):",
     ...(notExported.length > 0 ? notExported : ["  none listed in ds.config.ts"]),
     "",
-    `Read a component's docs before using it: ${config.cliName} docs get <Component>`,
+    `Read a component's docs before using it: ds docs get <Component>`,
   ].join("\n");
 }
 
@@ -32,6 +32,6 @@ export function formatTokens(category?: string): TextResult {
   if (category && !categories.includes(category)) {
     return { ok: false, message: `Unknown token category "${category}". Categories: ${categories.join(", ")}.` };
   }
-  const rows = listTokens(category).map((entry) => [entry.usage.join(" "), `var(${entry.cssVar})`, entry.value]);
+  const rows = listTokens(category).map((entry) => [entry.usage, `var(${entry.cssVar})`, entry.value]);
   return { ok: true, text: table([["TSX", "CSS", "VALUE"], ...rows]) };
 }

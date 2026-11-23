@@ -18,7 +18,7 @@ test("docs get returns generated Markdown for a real component, in any case", { 
 test("docs get redirects a known hallucination to its replacement", { skip: !hallucination }, () => {
   const [name, replacement] = hallucination;
   const result = getComponentDoc(name);
-  assert.ok(!result.ok && result.message.includes(`${config.cliName} docs get ${replacement}`));
+  assert.ok(!result.ok && result.message.includes(`ds docs get ${replacement}`));
 });
 
 test("docs get rejects an unknown name", () => {
@@ -43,7 +43,7 @@ test("tokens list filters by category and rejects unknown categories", () => {
   const [first] = listTokens();
   const other = listTokens().find((entry) => entry.category !== first.category);
   const filtered = formatTokens(first.category);
-  assert.ok(filtered.ok && filtered.text.includes(first.usage[0]));
-  assert.ok(filtered.ok && (!other || !filtered.text.includes(other.usage[0])));
+  assert.ok(filtered.ok && filtered.text.includes(first.usage));
+  assert.ok(filtered.ok && (!other || !filtered.text.includes(other.usage)));
   assert.equal(formatTokens("no-such-category").ok, false);
 });

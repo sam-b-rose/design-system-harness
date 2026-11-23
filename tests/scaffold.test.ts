@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { existsSync, rmSync } from "node:fs";
 import { test } from "node:test";
-import { resolveTargets, runCheck } from "../cli/lib/check";
+import { resolveTargets, runCheck } from "../checks";
 import { fromRoot } from "../cli/lib/paths";
 import { listTemplates, nameParts, scaffold } from "../cli/lib/scaffold";
 
-const TEMP_DIR = "evals/.tmp/scaffold";
+const TEMP_DIR = "tests/.tmp/scaffold";
 
 test("component names are PascalCase and end with the template kind", () => {
   assert.deepEqual(nameParts("form", "login"), { componentName: "LoginForm", title: "Login" });

@@ -8,15 +8,16 @@ It is not in your training data. Look things up; do not guess.
 1. **Read before you write.** Run `pnpm ds docs get <Component>` before using a
    component. Do not rely on what you remember from other libraries.
 2. **Import UI only from `@ds`, and only what it exports.** `pnpm ds exports`
-   prints the full list. `Box`, `Container`, `Flex` and `Grid` do not exist.
-   Use `Stack`.
+   prints the full list.
 3. **No raw values.** Never write hex colors or px sizes. Use `token("...")`
    from `@ds`. `pnpm ds tokens list` prints every token.
 4. **A task is not complete until `ds check` passes.** Run `pnpm ds check`, fix
    every problem it reports, and run it again.
 
-For task-specific guidance, read the skill:
-[skills/design-system/SKILL.md](skills/design-system/SKILL.md).
+Read the skill for your task before you start:
+
+- Building or changing UI: [skills/build-ui/SKILL.md](skills/build-ui/SKILL.md)
+- Reviewing UI: [skills/review-ui/SKILL.md](skills/review-ui/SKILL.md)
 
 ## Commands
 

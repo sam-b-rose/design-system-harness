@@ -1,14 +1,13 @@
 import { readFileSync } from "node:fs";
 import { relative, resolve } from "node:path";
-import config from "../ds.config";
-import { formatReport, resolveTargets, runCheck } from "./lib/check";
-import { root } from "./lib/paths";
+import { formatReport, resolveTargets, runCheck } from "../checks";
+import { PLAYGROUND_DIR, root } from "./lib/paths";
 
 export function hookTarget(input: string): string | undefined {
   const filePath: unknown = JSON.parse(input)?.tool_input?.file_path;
   if (typeof filePath !== "string") return undefined;
   const path = relative(root, resolve(root, filePath));
-  return path.startsWith(`${config.playgroundDir}/`) ? path : undefined;
+  return path.startsWith(`${PLAYGROUND_DIR}/`) ? path : undefined;
 }
 
 export async function runHook(input: string): Promise<{ exitCode: number; report?: string }> {

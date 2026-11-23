@@ -1,8 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
-import config from "../../ds.config";
 import type { TextResult } from "./format";
-import { fromRoot, root } from "./paths";
+import { fromRoot, PAGES_DIR, root } from "./paths";
 
 const TEMPLATES_DIR = fromRoot("cli/templates");
 const COMPONENT_PLACEHOLDER = "Template";
@@ -42,11 +41,10 @@ export function renderTemplate(kind: string, name: string): { componentName: str
   return { componentName, source };
 }
 
-export function scaffold(kind: string | undefined, name: string | undefined, targetDir = config.pagesDir): TextResult {
-  const cli = config.cliName;
+export function scaffold(kind: string | undefined, name: string | undefined, targetDir = PAGES_DIR): TextResult {
   const kinds = listTemplates();
   if (!kind || !kinds.includes(kind) || !name || toWords(name).length === 0 || !/^[A-Za-z]/.test(name)) {
-    return { ok: false, message: `Usage: ${cli} add <${kinds.join("|")}> <name>, e.g. ${cli} add form login` };
+    return { ok: false, message: `Usage: ds add <${kinds.join("|")}> <name>, e.g. ds add form login` };
   }
 
   const { componentName, source } = renderTemplate(kind, name);
@@ -64,9 +62,9 @@ export function scaffold(kind: string | undefined, name: string | undefined, tar
       `Created ${shown} (exports ${componentName}).`,
       "",
       "Next:",
-      `  1. Read the docs for each component you add: ${cli} docs get <Component>`,
+      `  1. Read the docs for each component you add: ds docs get <Component>`,
       `  2. Edit ${shown}`,
-      `  3. Run: ${cli} check`,
+      `  3. Run: ds check`,
     ].join("\n"),
   };
 }

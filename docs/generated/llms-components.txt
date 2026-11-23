@@ -46,15 +46,15 @@ Pick `tone` by meaning: `info` for neutral notes, `success` after something work
 
 ## Do
 
-- Use `tone="danger"` for form-level errors, above the fields.
-- Keep the message to one or two sentences.
-- Use `title` for a short summary when the message needs one.
+- `alert/form-error` Use `tone="danger"` for form-level errors, above the fields.
+- `alert/short` Keep the message to one or two sentences.
+- `alert/title` Use `title` for a short summary when the message needs one.
 
 ## Don't
 
-- Don't color a `<div>` or `<p>` to make a message. Use `Alert`.
-- Don't use `Alert` for a single field's validation. Pass `error` to `TextField`.
-- Don't stack several alerts for one event. Show one.
+- `alert/no-custom-message` Don't color a `<div>` or `<p>` to make a message. Use `Alert`.
+- `alert/not-field-error` Don't use `Alert` for a single field's validation. Pass `error` to `TextField`.
+- `alert/one-per-event` Don't stack several alerts for one event. Show one.
 
 # Button
 
@@ -99,15 +99,15 @@ Use `variant="primary"` for the single most important action in a view and the d
 
 ## Do
 
-- Use one `primary` button per view.
-- Use `type="submit"` for the main action inside a `<form>`.
-- Write labels as verbs: "Sign in", "Save changes".
+- `button/one-primary` Use one `primary` button per view.
+- `button/submit-type` Use `type="submit"` for the main action inside a `<form>`.
+- `button/verb-labels` Write labels as verbs: "Sign in", "Save changes".
 
 ## Don't
 
-- Don't style a raw `<button>` element. Use `Button`.
-- Don't pass `style` or `className`. `Button` does not accept them.
-- Don't use a `Button` for navigation. Use a link.
+- `button/no-raw-button` Don't style a raw `<button>` element. Use `Button`.
+- `button/no-style-props` Don't pass `style` or `className`. `Button` does not accept them.
+- `button/not-navigation` Don't use a `Button` for navigation. Use a link.
 
 # Card
 
@@ -156,15 +156,15 @@ export function SettingsSection() {
 
 ## Do
 
-- Use `Card` to group one topic: a form, a settings section, an empty state.
-- Put a `Stack` directly inside the card to space its content.
-- Set `padding` with a `space` token name.
+- `card/one-topic` Use `Card` to group one topic: a form, a settings section, an empty state.
+- `card/stack-inside` Put a `Stack` directly inside the card to space its content.
+- `card/padding-token` Set `padding` with a `space` token name.
 
 ## Don't
 
-- Don't build a card from a `<div>` with a border and background. Use `Card`.
-- Don't nest a `Card` inside another `Card`.
-- Don't import `Container` or `Box` for grouping. They do not exist.
+- `card/no-div-card` Don't build a card from a `<div>` with a border and background. Use `Card`.
+- `card/no-nesting` Don't nest a `Card` inside another `Card`.
+- `card/no-invented-containers` Don't import `Container` or `Box` for grouping. They do not exist.
 
 # Heading
 
@@ -206,15 +206,15 @@ Choose `level` by document structure, not by size: one level 1 per page, level 2
 
 ## Do
 
-- Use exactly one `level={1}` heading per page.
-- Start each `Card` with a `level={2}` heading.
-- Let `Stack` handle the space around headings.
+- `heading/one-h1` Use exactly one `level={1}` heading per page.
+- `heading/card-starts-h2` Start each `Card` with a `level={2}` heading.
+- `heading/stack-spacing` Let `Stack` handle the space around headings.
 
 ## Don't
 
-- Don't write raw `<h1>` to `<h6>` elements. Use `Heading`.
-- Don't set a font size on a heading. `level` sets it.
-- Don't skip levels, such as a level 3 directly under a level 1.
+- `heading/no-raw-headings` Don't write raw `<h1>` to `<h6>` elements. Use `Heading`.
+- `heading/no-font-size` Don't set a font size on a heading. `level` sets it.
+- `heading/no-skipped-levels` Don't skip levels, such as a level 3 directly under a level 1.
 
 # Stack
 
@@ -273,15 +273,15 @@ Reach for `Stack` whenever elements need space between them. Nest stacks to comb
 
 ## Do
 
-- Use `Stack` for all spacing between elements.
-- Nest a horizontal `Stack` inside a vertical one for rows of actions.
-- Set `gap` with a `space` token name: `xs`, `sm`, `md`, `lg` or `xl`.
+- `stack/all-spacing` Use `Stack` for all spacing between elements.
+- `stack/nest-for-rows` Nest a horizontal `Stack` inside a vertical one for rows of actions.
+- `stack/gap-token` Set `gap` with a `space` token name: `xs`, `sm`, `md`, `lg` or `xl`.
 
 ## Don't
 
-- Don't import `Box`, `Flex`, `Grid` or `Container`. They do not exist.
-- Don't write a `<div>` with `display: flex` or `gap`. Use `Stack`.
-- Don't pass pixel values to `gap`.
+- `stack/no-invented-layout` Don't import `Box`, `Flex`, `Grid` or `Container`. They do not exist.
+- `stack/no-flex-div` Don't write a `<div>` with `display: flex` or `gap`. Use `Stack`.
+- `stack/no-px-gap` Don't pass pixel values to `gap`.
 
 # TextField
 
@@ -342,12 +342,12 @@ export function WithError() {
 
 ## Do
 
-- Always pass `label`.
-- Use `type="email"` and `type="password"` for those fields.
-- Put fields in a `Stack` to space them.
+- `textfield/label` Always pass `label`.
+- `textfield/input-types` Use `type="email"` and `type="password"` for those fields.
+- `textfield/stack-spacing` Put fields in a `Stack` to space them.
 
 ## Don't
 
-- Don't use a raw `<input>` or `<label>`. Use `TextField`.
-- Don't use `placeholder` as the label.
-- Don't render your own error text under the field. Pass `error`.
+- `textfield/no-raw-input` Don't use a raw `<input>` or `<label>`. Use `TextField`.
+- `textfield/no-placeholder-label` Don't use `placeholder` as the label.
+- `textfield/error-prop` Don't render your own error text under the field. Pass `error`.

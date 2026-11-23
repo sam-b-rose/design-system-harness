@@ -1,90 +1,121 @@
-import { mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import config from "../ds.config";
-import { runCheck } from "../cli/lib/check";
-import { fromRoot } from "../cli/lib/paths";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { relative } from "node:path";
+import { fromRoot, root } from "../cli/lib/paths";
+import {
+  agentCommandLine,
+  agentPrompt,
+  createWorkspace,
+  parseAgentOptions,
+  runAgent,
+  scoreWorkspace,
+  type Variant,
+} from "./agent";
+import { describeIntent, loadTasks, type Task } from "./tasks";
 
-export interface Task {
-  id: string;
-  prompt: string;
-  target: string;
-  checks: string[];
-  good: string[];
-  bad: { fixture: string; rule: string }[];
+interface TaskScore {
+  passed: boolean;
+  problems: number;
+  intentMet: number;
+  intentTotal: number;
 }
 
-interface Case {
-  label: string;
-  file: string;
-  expected: "pass" | { rule: string; messagePart: string };
+interface Baseline {
+  date: string;
+  models: string[];
+  tasks: Record<string, TaskScore>;
 }
 
-const TASKS_DIR = fromRoot("evals/tasks");
-const FIXTURES_DIR = fromRoot("evals/fixtures");
-const DERIVED_DIR = fromRoot("evals/.tmp/derived");
+const RESULTS_DIR = fromRoot("evals/results");
+const BASELINE_FILE = fromRoot("evals/baseline.json");
+const USAGE = "Usage: pnpm evals [--no-harness] [--save-baseline] [--model <id>] [task-id...]";
 
-export function loadTasks(): Task[] {
-  return readdirSync(TASKS_DIR)
-    .filter((file) => file.endsWith(".json"))
-    .sort()
-    .map((file) => JSON.parse(readFileSync(join(TASKS_DIR, file), "utf8")));
+const { model, positional: requested, flags } = parseAgentOptions(process.argv.slice(2));
+const variant: Variant = flags.includes("--no-harness") ? "no-harness" : "harness";
+const saveBaseline = flags.includes("--save-baseline");
+const tasks = loadTasks().filter((task) => requested.length === 0 || requested.includes(task.id));
+
+if (tasks.length === 0) {
+  console.error(`No matching eval tasks. ${USAGE}`);
+  process.exit(2);
+}
+if (saveBaseline && variant !== "harness") {
+  console.error("The team baseline records the harness. Run --save-baseline without --no-harness.");
+  process.exit(2);
 }
 
-function fixtureCases(task: Task): Case[] {
-  const good = task.good.map((fixture): Case => ({
-    label: `${task.id}: ${fixture}`,
-    file: join(FIXTURES_DIR, fixture),
-    expected: "pass",
-  }));
-  const bad = task.bad.map(({ fixture, rule }): Case => ({
-    label: `${task.id}: ${fixture}`,
-    file: join(FIXTURES_DIR, fixture),
-    expected: { rule, messagePart: "" },
-  }));
-  return [...good, ...bad];
+const baseline: Baseline | undefined =
+  variant === "harness" && existsSync(BASELINE_FILE) ? JSON.parse(readFileSync(BASELINE_FILE, "utf8")) : undefined;
+
+function compared(task: Task, score: TaskScore): string {
+  const before = baseline?.tasks[task.id];
+  if (!before) return "";
+  if (before.passed && !score.passed) return "  REGRESSED (baseline: pass)";
+  if (!before.passed && score.passed) return "  improved (baseline: fail)";
+  return "";
 }
 
-function hallucinationCases(task: Task): Case[] {
-  return task.good.flatMap((fixture) => {
-    const source = readFileSync(join(FIXTURES_DIR, fixture), "utf8");
-    return Object.entries(config.knownHallucinations).flatMap(([name, replacement]): Case[] => {
-      const real = new RegExp(`\\b${replacement}\\b`, "g");
-      if (!real.test(source)) return [];
-      const file = join(DERIVED_DIR, `${task.id}.${name}.tsx`);
-      writeFileSync(file, source.replace(real, name));
-      return [
-        {
-          label: `${task.id}: ${fixture} with ${replacement} swapped for ${name} (from ds.config.ts)`,
-          file,
-          expected: { rule: "ds/no-unknown-imports", messagePart: `Use ${replacement}` },
-        },
-      ];
-    });
-  });
+async function runTask(task: Task) {
+  const workspace = createWorkspace(variant);
+  const run = await runAgent(workspace, agentPrompt(task), model);
+  const result = await scoreWorkspace(workspace, task, `${variant}-${task.id}`);
+  rmSync(workspace, { recursive: true, force: true });
+
+  const score: TaskScore = {
+    passed:
+      run.exitCode === 0 && result.targetExists && result.violations.length === 0 && result.unmetIntent.length === 0,
+    problems: result.violations.length,
+    intentMet: task.intent.length - result.unmetIntent.length,
+    intentTotal: task.intent.length,
+  };
+  console.log(
+    `${score.passed ? "pass" : "FAIL"}  ${task.id}  (${score.problems} problems, intent ${score.intentMet}/${score.intentTotal}, ${run.turns ?? "?"} turns, ${run.seconds}s)${compared(task, score)}`,
+  );
+  return {
+    task: task.id,
+    ...score,
+    agentExitCode: run.exitCode,
+    targetWritten: result.targetExists,
+    turns: run.turns,
+    seconds: run.seconds,
+    models: run.models,
+    unmetIntent: result.unmetIntent.map(describeIntent),
+    violations: result.violations.map((violation) => ({
+      rule: violation.rule,
+      file: relative(root, violation.file),
+      line: violation.line,
+      message: violation.message,
+    })),
+  };
 }
 
-async function main(): Promise<void> {
-  const tasks = loadTasks();
-  mkdirSync(DERIVED_DIR, { recursive: true });
-  const cases = tasks.flatMap((task) => [...fixtureCases(task), ...hallucinationCases(task)]);
-  const violations = await runCheck(cases.map((testCase) => testCase.file));
-  rmSync(DERIVED_DIR, { recursive: true });
+console.log(`Running ${tasks.length} task(s) in the ${variant} setup with: ${agentCommandLine(model)}`);
+if (variant === "harness" && !baseline) console.log("No team baseline yet. Record one with --save-baseline.");
+const results = await Promise.all(tasks.map(runTask));
+const passedCount = results.filter((result) => result.passed).length;
+const date = new Date().toISOString().slice(0, 10);
+const models = [...new Set(results.flatMap((result) => result.models))];
+const fileName = `${[date, variant, model ?? ""].filter(Boolean).join("-")}.json`;
+const report = {
+  generatedBy: "evals/run.ts",
+  date,
+  variant,
+  agent: agentCommandLine(model),
+  models,
+  passed: passedCount,
+  total: results.length,
+  results,
+};
 
-  let failures = 0;
-  for (const { label, file, expected } of cases) {
-    const found = violations.filter((violation) => violation.file === file);
-    const rules = [...new Set(found.map((violation) => violation.rule))].join(", ") || "no problems";
-    const passed =
-      expected === "pass"
-        ? found.length === 0
-        : found.some((violation) => violation.rule === expected.rule && violation.message.includes(expected.messagePart));
-    const wanted = expected === "pass" ? "passes" : `fails with ${expected.rule}`;
-    if (!passed) failures += 1;
-    console.log(passed ? `ok    ${label}  (${wanted})` : `FAIL  ${label}  (expected: ${wanted}; got: ${rules})`);
-  }
+mkdirSync(RESULTS_DIR, { recursive: true });
+writeFileSync(`${RESULTS_DIR}/${fileName}`, `${JSON.stringify(report, null, 2)}\n`);
+console.log(`\n${passedCount}/${results.length} tasks passed ds check and intent. Wrote evals/results/${fileName}.`);
 
-  console.log(`\n${cases.length - failures}/${cases.length} eval assertions passed across ${tasks.length} task(s).`);
-  process.exit(failures === 0 ? 0 : 1);
+if (saveBaseline) {
+  const scores = Object.fromEntries(
+    results.map(({ task, passed, problems, intentMet, intentTotal }) => [task, { passed, problems, intentMet, intentTotal }]),
+  );
+  const next: Baseline = { date, models, tasks: { ...baseline?.tasks, ...scores } };
+  writeFileSync(BASELINE_FILE, `${JSON.stringify(next, null, 2)}\n`);
+  console.log("Wrote evals/baseline.json.");
 }
-
-if (import.meta.url === `file://${process.argv[1]}`) await main();
+process.exit(passedCount === results.length ? 0 : 1);

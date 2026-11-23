@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-23",
+  "models": [
+    "claude-haiku-5-5"
+  ],
+  "tasks": {
+    "account-page": {
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4
+    },
+    "empty-state": {
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4
+    },
+    "login-form": {
+      "passed": true,
+      "problems": 0,
+      "intentMet": 5,
+      "intentTotal": 5
+    },
+    "settings-card": {
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4
+    },
+    "signup-form": {
+      "passed": true,
+      "problems": 0,
+      "intentMet": 4,
+      "intentTotal": 4
+    }
+  }
+}

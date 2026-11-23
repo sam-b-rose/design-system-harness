@@ -1,0 +1,73 @@
+{
+  "generatedBy": "evals/agent-run.ts",
+  "date": "2026-11-12",
+  "variant": "harness",
+  "agent": "claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands --model claude-haiku-5-5",
+  "models": [
+    "claude-haiku-5-5"
+  ],
+  "passed": 5,
+  "total": 5,
+  "results": [
+    {
+      "task": "account-page",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 8,
+      "seconds": 34,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "empty-state",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 10,
+      "seconds": 30,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "login-form",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 7,
+      "seconds": 24,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "settings-card",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 9,
+      "seconds": 31,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "signup-form",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 6,
+      "seconds": 29,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    }
+  ]
+}

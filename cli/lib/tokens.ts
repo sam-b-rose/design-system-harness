@@ -1,15 +1,12 @@
-import config from "../../ds.config";
 import { cssVarName, tokens } from "../../packages/ds/src/tokens/tokens";
 
 export interface FlatToken {
   path: string;
   category: string;
   cssVar: string;
-  usage: string[];
+  usage: string;
   value: string;
 }
-
-const tokenUsage = config.tokenUsage ?? ((path: string) => [`token("${path}")`]);
 
 type TokenTree = { readonly [key: string]: string | TokenTree };
 
@@ -18,7 +15,7 @@ function flatten(tree: TokenTree, prefix: string[]): FlatToken[] {
     const segments = [...prefix, key];
     if (typeof value !== "string") return flatten(value, segments);
     const path = segments.join(".");
-    return [{ path, category: segments[0], cssVar: cssVarName(path), usage: tokenUsage(path), value }];
+    return [{ path, category: segments[0], cssVar: cssVarName(path), usage: `token("${path}")`, value }];
   });
 }
 

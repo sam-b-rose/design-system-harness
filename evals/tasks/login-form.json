@@ -2,41 +2,11 @@
   "id": "login-form",
   "prompt": "Build a login form with an email field, a password field and a primary \"Sign in\" button. Export it as LoginForm.",
   "target": "playground/src/pages/LoginForm.tsx",
-  "checks": [
-    "tsc",
-    "ds/no-unknown-imports",
-    "ds/no-raw-values",
-    "ds/prefer-stack",
-    "audit/textfield-label",
-    "audit/one-primary-button"
-  ],
-  "good": [
-    "good/login-form.tsx"
-  ],
-  "bad": [
-    {
-      "fixture": "bad/login-form.unknown-import.tsx",
-      "rule": "ds/no-unknown-imports"
-    },
-    {
-      "fixture": "bad/login-form.raw-div.tsx",
-      "rule": "ds/prefer-stack"
-    },
-    {
-      "fixture": "bad/login-form.raw-values.tsx",
-      "rule": "ds/no-raw-values"
-    },
-    {
-      "fixture": "bad/login-form.guessed-props.tsx",
-      "rule": "tsc/TS2322"
-    },
-    {
-      "fixture": "bad/login-form.missing-label.tsx",
-      "rule": "audit/textfield-label"
-    },
-    {
-      "fixture": "bad/login-form.two-primary.tsx",
-      "rule": "audit/one-primary-button"
-    }
+  "intent": [
+    { "element": "form" },
+    { "element": "TextField", "props": { "type": "email" }, "rule": "textfield/input-types" },
+    { "element": "TextField", "props": { "type": "password" }, "rule": "textfield/input-types" },
+    { "element": "Button", "props": { "type": "submit" }, "rule": "button/submit-type" },
+    { "element": "Button", "props": { "variant": "primary" }, "count": 1, "rule": "button/one-primary" }
   ]
 }

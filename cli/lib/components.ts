@@ -1,10 +1,9 @@
 import { existsSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import config from "../../ds.config";
-import { fromRoot } from "./paths";
+import { COMPONENTS_DIR, fromRoot } from "./paths";
 
 export function componentDir(name: string): string {
-  return fromRoot(config.componentsDir, name);
+  return fromRoot(COMPONENTS_DIR, name);
 }
 
 export function componentFile(name: string): string {
@@ -12,7 +11,7 @@ export function componentFile(name: string): string {
 }
 
 export function listComponents(): string[] {
-  const dir = fromRoot(config.componentsDir);
+  const dir = fromRoot(COMPONENTS_DIR);
   if (!existsSync(dir)) return [];
   return readdirSync(dir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && existsSync(componentFile(entry.name)))

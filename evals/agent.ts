@@ -4,12 +4,12 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative } from "node:path";
 import ts from "typescript";
 import config from "../ds.config";
-import { resolveTargets, runCheck, type Violation } from "../cli/lib/check";
-import { fromRoot, root } from "../cli/lib/paths";
+import { resolveTargets, runCheck, type Violation } from "../checks";
+import { ENTRY, fromRoot, PAGES_DIR, PLAYGROUND_DIR, root } from "../cli/lib/paths";
 import { loadCompilerOptions } from "../cli/lib/typescript";
-import type { Task } from "./run";
+import { unmetIntent, type IntentCheck, type Task } from "./tasks";
 
-export type Variant = "baseline" | "toolkit";
+export type Variant = "harness" | "no-harness";
 
 export interface AgentRun {
   exitCode: number | null;
@@ -29,11 +29,12 @@ export interface Score {
   targetExists: boolean;
   files: { path: string; source: string }[];
   violations: Violation[];
+  unmetIntent: IntentCheck[];
 }
 
-const BASELINE_PATHS = ["playground/"];
-const BASELINE_PACKAGE = "starter-ds";
-const TOOLKIT_EXCLUDED = ["demo/", "evals/", "tests/", ".github/", "scripts/reset/", "README.md"];
+const NO_HARNESS_PATHS = ["playground/"];
+const COMPILED_PACKAGE = "example-ds";
+const HARNESS_EXCLUDED = ["evals/", "tests/", ".github/", "README.md", "docs/harness.md"];
 const AGENT_TIMEOUT_MS = 10 * 60 * 1000;
 const SCORING_DIR = "evals/.tmp/agent";
 
@@ -52,9 +53,9 @@ function linkDependencies(workspace: string): void {
 }
 
 function installCompiledDesignSystem(workspace: string): void {
-  const entry = fromRoot(config.entry);
+  const entry = fromRoot(ENTRY);
   const sourceDir = dirname(entry);
-  const packageDir = join(workspace, "node_modules", BASELINE_PACKAGE);
+  const packageDir = join(workspace, "node_modules", COMPILED_PACKAGE);
   const program = ts.createProgram([entry], {
     ...loadCompilerOptions(),
     noEmit: false,
@@ -69,25 +70,25 @@ function installCompiledDesignSystem(workspace: string): void {
   for (const file of stylesheets) {
     cpSync(fromRoot(file), join(packageDir, "dist", relative(sourceDir, fromRoot(file))));
   }
-  const manifest = { name: BASELINE_PACKAGE, version: "1.0.0", type: "module", main: "dist/index.js", types: "dist/index.d.ts" };
+  const manifest = { name: COMPILED_PACKAGE, version: "1.0.0", type: "module", main: "dist/index.js", types: "dist/index.d.ts" };
   writeFileSync(join(packageDir, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
-function writeBaselineProject(workspace: string): void {
+function writeAppProject(workspace: string): void {
   const { dependencies, devDependencies } = JSON.parse(readFileSync(fromRoot("package.json"), "utf8"));
   const manifest = {
     name: "app",
     private: true,
     type: "module",
     scripts: { typecheck: "tsc --noEmit" },
-    dependencies: { ...dependencies, [BASELINE_PACKAGE]: "1.0.0" },
+    dependencies: { ...dependencies, [COMPILED_PACKAGE]: "1.0.0" },
     devDependencies,
   };
   writeFileSync(join(workspace, "package.json"), `${JSON.stringify(manifest, null, 2)}\n`);
 
   const tsconfig = JSON.parse(readFileSync(fromRoot("tsconfig.json"), "utf8"));
-  tsconfig.compilerOptions.paths = { [config.alias]: [`./node_modules/${BASELINE_PACKAGE}/dist/index.d.ts`] };
-  tsconfig.include = [config.playgroundDir];
+  tsconfig.compilerOptions.paths = { [config.alias]: [`./node_modules/${COMPILED_PACKAGE}/dist/index.d.ts`] };
+  tsconfig.include = [PLAYGROUND_DIR];
   tsconfig.exclude = ["node_modules"];
   writeFileSync(join(workspace, "tsconfig.json"), `${JSON.stringify(tsconfig, null, 2)}\n`);
 }
@@ -96,7 +97,7 @@ export function createWorkspace(variant: Variant): string {
   const workspace = mkdtempSync(join(tmpdir(), `ds-${variant}-`));
   const startsWithAny = (file: string, prefixes: string[]) => prefixes.some((prefix) => file.startsWith(prefix));
   const files = trackedFiles().filter((file) =>
-    variant === "baseline" ? startsWithAny(file, BASELINE_PATHS) : !startsWithAny(file, TOOLKIT_EXCLUDED),
+    variant === "no-harness" ? startsWithAny(file, NO_HARNESS_PATHS) : !startsWithAny(file, HARNESS_EXCLUDED),
   );
   for (const file of files) {
     mkdirSync(dirname(join(workspace, file)), { recursive: true });
@@ -104,9 +105,9 @@ export function createWorkspace(variant: Variant): string {
   }
   linkDependencies(workspace);
 
-  if (variant === "baseline") {
+  if (variant === "no-harness") {
     installCompiledDesignSystem(workspace);
-    writeBaselineProject(workspace);
+    writeAppProject(workspace);
   } else {
     for (const copy of config.agent.instructionFileCopies) {
       cpSync(fromRoot("AGENTS.md"), join(workspace, copy));
@@ -175,18 +176,21 @@ function readAgentOutput(stdout: string, stderr: string): Pick<AgentRun, "turns"
 
 export async function scoreWorkspace(workspace: string, task: Task, label: string): Promise<Score> {
   const scoringDir = fromRoot(SCORING_DIR, label);
-  const playgroundSource = join(config.playgroundDir, "src");
+  const playgroundSource = join(PLAYGROUND_DIR, "src");
   rmSync(scoringDir, { recursive: true, force: true });
   cpSync(join(workspace, playgroundSource), scoringDir, { recursive: true });
 
   const { files } = resolveTargets([relative(root, scoringDir)]);
   const original = (file: string) => join(playgroundSource, relative(scoringDir, file));
   const violations = (await runCheck(files)).map((violation) => ({ ...violation, file: fromRoot(original(violation.file)) }));
-  const pagesDir = join(scoringDir, relative(playgroundSource, config.pagesDir));
+  const pagesDir = join(scoringDir, relative(playgroundSource, PAGES_DIR));
   const written = files
     .filter((file) => file.startsWith(pagesDir))
     .map((file) => ({ path: original(file), source: readFileSync(file, "utf8") }));
 
   rmSync(scoringDir, { recursive: true, force: true });
-  return { targetExists: existsSync(join(workspace, task.target)), files: written, violations };
+  const target = join(workspace, task.target);
+  const targetExists = existsSync(target);
+  const intent = targetExists ? unmetIntent(readFileSync(target, "utf8"), task.intent) : task.intent;
+  return { targetExists, files: written, violations, unmetIntent: intent };
 }

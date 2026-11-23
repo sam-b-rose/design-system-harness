@@ -1,16 +1,7 @@
 export interface DsConfig {
-  name: string;
   alias: string;
-  cliName: string;
-  entry: string;
-  componentsDir: string;
-  generatedDir: string;
-  playgroundDir: string;
-  pagesDir: string;
-  layoutComponent?: string;
+  layoutComponent: string;
   knownHallucinations: Record<string, string>;
-  tokenUsage?: (path: string) => string[];
-  tokenCss?: (tokens: { path: string; cssVar: string; value: string }[]) => string;
   agent: {
     command: string;
     args: string[];
@@ -19,14 +10,7 @@ export interface DsConfig {
 }
 
 const config: DsConfig = {
-  name: "Starter DS",
   alias: "@ds",
-  cliName: "ds",
-  entry: "packages/ds/src/index.ts",
-  componentsDir: "packages/ds/src/components",
-  generatedDir: "docs/generated",
-  playgroundDir: "playground",
-  pagesDir: "playground/src/pages",
   layoutComponent: "Stack",
   knownHallucinations: {
     Box: "Stack",

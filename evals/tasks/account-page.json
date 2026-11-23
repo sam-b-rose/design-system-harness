@@ -2,27 +2,10 @@
   "id": "account-page",
   "prompt": "Build an account page with the page title \"Account\" and two sections: \"Profile\" with a name field and a primary \"Save changes\" button, and \"Danger zone\" with a warning message and a \"Delete account\" button. Export it as AccountPage.",
   "target": "playground/src/pages/AccountPage.tsx",
-  "checks": [
-    "tsc",
-    "ds/no-unknown-imports",
-    "ds/no-raw-values",
-    "ds/prefer-stack"
-  ],
-  "good": [
-    "good/account-page.tsx"
-  ],
-  "bad": [
-    {
-      "fixture": "bad/account-page.raw-div.tsx",
-      "rule": "ds/prefer-stack"
-    },
-    {
-      "fixture": "bad/account-page.raw-values.tsx",
-      "rule": "ds/no-raw-values"
-    },
-    {
-      "fixture": "bad/account-page.guessed-props.tsx",
-      "rule": "tsc/TS2322"
-    }
+  "intent": [
+    { "element": "Heading", "props": { "level": 1 }, "count": 1, "rule": "heading/one-h1" },
+    { "element": "Card", "count": 2, "rule": "card/one-topic" },
+    { "element": "Alert", "props": { "tone": "danger" } },
+    { "element": "Button", "props": { "variant": "primary" }, "count": 1, "rule": "button/one-primary" }
   ]
 }

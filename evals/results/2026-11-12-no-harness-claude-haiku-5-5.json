@@ -1,0 +1,93 @@
+{
+  "generatedBy": "evals/agent-run.ts",
+  "date": "2026-11-12",
+  "variant": "no-harness",
+  "agent": "claude -p {prompt} --output-format json --permission-mode acceptEdits --allowedTools Bash(pnpm *) --setting-sources project --strict-mcp-config --disable-slash-commands --model claude-haiku-5-5",
+  "models": [
+    "claude-haiku-5-5"
+  ],
+  "passed": 3,
+  "total": 5,
+  "results": [
+    {
+      "task": "account-page",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 23,
+      "seconds": 29,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "empty-state",
+      "passed": false,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 11,
+      "seconds": 22,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": [
+        {
+          "rule": "ds/prefer-stack",
+          "file": "playground/src/pages/EmptyState.tsx",
+          "line": 10,
+          "message": "Raw <div> with flex, grid or gap styling. Use Stack for layout and spacing (see: ds docs get Stack)."
+        },
+        {
+          "rule": "ds/no-raw-values",
+          "file": "playground/src/pages/EmptyState.tsx",
+          "line": 18,
+          "message": "Hard-coded size \"420px\". Use a space, radius or fontSize token, e.g. token(\"space.xs\") (see: ds tokens list)."
+        }
+      ]
+    },
+    {
+      "task": "login-form",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 12,
+      "seconds": 25,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "settings-card",
+      "passed": true,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 11,
+      "seconds": 25,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": []
+    },
+    {
+      "task": "signup-form",
+      "passed": false,
+      "agentExitCode": 0,
+      "targetWritten": true,
+      "turns": 12,
+      "seconds": 28,
+      "models": [
+        "claude-haiku-5-5"
+      ],
+      "violations": [
+        {
+          "rule": "ds/no-raw-values",
+          "file": "playground/src/pages/SignupForm.tsx",
+          "line": 17,
+          "message": "Hard-coded size \"400px\". Use a space, radius or fontSize token, e.g. token(\"space.xs\") (see: ds tokens list)."
+        }
+      ]
+    }
+  ]
+}

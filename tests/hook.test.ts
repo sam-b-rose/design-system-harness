@@ -1,11 +1,10 @@
 import assert from "node:assert/strict";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { test } from "node:test";
-import config from "../ds.config";
 import { hookTarget, runHook } from "../cli/hook";
-import { fromRoot } from "../cli/lib/paths";
+import { fromRoot, PLAYGROUND_DIR } from "../cli/lib/paths";
 
-const TEMP_DIR = `${config.playgroundDir}/.hook-test`;
+const TEMP_DIR = `${PLAYGROUND_DIR}/.hook-test`;
 
 function toolInput(filePath: string): string {
   return JSON.stringify({ tool_name: "Write", tool_input: { file_path: filePath } });

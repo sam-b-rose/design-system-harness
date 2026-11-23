@@ -59,12 +59,12 @@ export function WithError() {
 
 ## Do
 
-- Always pass `label`.
-- Use `type="email"` and `type="password"` for those fields.
-- Put fields in a `Stack` to space them.
+- `textfield/label` Always pass `label`.
+- `textfield/input-types` Use `type="email"` and `type="password"` for those fields.
+- `textfield/stack-spacing` Put fields in a `Stack` to space them.
 
 ## Don't
 
-- Don't use a raw `<input>` or `<label>`. Use `TextField`.
-- Don't use `placeholder` as the label.
-- Don't render your own error text under the field. Pass `error`.
+- `textfield/no-raw-input` Don't use a raw `<input>` or `<label>`. Use `TextField`.
+- `textfield/no-placeholder-label` Don't use `placeholder` as the label.
+- `textfield/error-prop` Don't render your own error text under the field. Pass `error`.

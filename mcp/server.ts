@@ -13,7 +13,7 @@ function reply(ok: boolean, text: string) {
 }
 
 export function createServer(): McpServer {
-  const server = new McpServer({ name: `${config.cliName}-design-system`, version: "0.1.0" });
+  const server = new McpServer({ name: `ds-design-system`, version: "0.1.0" });
 
   server.registerTool(
     "docs_get",

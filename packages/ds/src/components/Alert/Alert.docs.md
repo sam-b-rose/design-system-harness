@@ -6,12 +6,12 @@ Pick `tone` by meaning: `info` for neutral notes, `success` after something work
 
 ## Do
 
-- Use `tone="danger"` for form-level errors, above the fields.
-- Keep the message to one or two sentences.
-- Use `title` for a short summary when the message needs one.
+- `alert/form-error` Use `tone="danger"` for form-level errors, above the fields.
+- `alert/short` Keep the message to one or two sentences.
+- `alert/title` Use `title` for a short summary when the message needs one.
 
 ## Don't
 
-- Don't color a `<div>` or `<p>` to make a message. Use `Alert`.
-- Don't use `Alert` for a single field's validation. Pass `error` to `TextField`.
-- Don't stack several alerts for one event. Show one.
+- `alert/no-custom-message` Don't color a `<div>` or `<p>` to make a message. Use `Alert`.
+- `alert/not-field-error` Don't use `Alert` for a single field's validation. Pass `error` to `TextField`.
+- `alert/one-per-event` Don't stack several alerts for one event. Show one.

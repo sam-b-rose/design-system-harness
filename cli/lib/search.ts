@@ -1,9 +1,8 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename } from "node:path";
-import config from "../../ds.config";
 import { listComponents } from "./components";
 import type { TextResult } from "./format";
-import { fromRoot } from "./paths";
+import { fromRoot, GENERATED_DIR } from "./paths";
 
 interface Section {
   file: string;
@@ -26,7 +25,7 @@ const MAX_RESULTS = 8;
 const SNIPPET_LENGTH = 160;
 
 function searchableFiles(): string[] {
-  const dir = config.generatedDir;
+  const dir = GENERATED_DIR;
   const componentsDir = fromRoot(dir, "components");
   const components = existsSync(componentsDir)
     ? readdirSync(componentsDir).sort().map((file) => `${dir}/components/${file}`)
@@ -88,13 +87,13 @@ export function formatSearch(query: string): TextResult {
   if (hits.length === 0) {
     return {
       ok: false,
-      message: `No docs match "${query}". List what exists with: ${config.cliName} exports`,
+      message: `No docs match "${query}". List what exists with: ds exports`,
     };
   }
   const components = listComponents();
   const blocks = hits.map((hit, index) => {
     const location = hit.title === hit.heading ? hit.title : `${hit.title} > ${hit.heading}`;
-    const next = components.includes(hit.title) ? `\n   read: ${config.cliName} docs get ${hit.title}` : "";
+    const next = components.includes(hit.title) ? `\n   read: ds docs get ${hit.title}` : "";
     return `${index + 1}. ${location}  (${hit.file})\n   ${hit.snippet}${next}`;
   });
   return { ok: true, text: blocks.join("\n\n") };
