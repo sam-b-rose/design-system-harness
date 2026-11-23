@@ -1,4 +1,4 @@
-# design-system-harness
+<h1><img src="docs/logo.svg" alt="design system harness" width="356" height="64"></h1>
 
 A working example of a design system harness: the scaffolding that lets a coding agent build UI with your design system and keeps it on-system. Each piece of the harness is in this repo, small enough to read in one sitting, and tested.
 

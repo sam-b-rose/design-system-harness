@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="design system harness">
+  <style>
+    .ink { fill: #16181d; }
+    .frame { stroke: #16181d; }
+    .muted { fill: #5c6370; }
+    @media (prefers-color-scheme: dark) {
+      .ink { fill: #f6f7f9; }
+      .frame { stroke: #f6f7f9; }
+      .muted { fill: #a7aeba; }
+    }
+  </style>
+  <g>
+    <path class="frame" d="M4 24V8a4 4 0 0 1 4-4h16 M60 40v16a4 4 0 0 1-4 4H40" fill="none" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect class="ink" x="12" y="12" width="18" height="18" rx="4"/>
+    <rect class="ink" x="34" y="12" width="18" height="18" rx="4"/>
+    <rect class="ink" x="12" y="34" width="18" height="18" rx="4"/>
+    <rect x="34" y="34" width="18" height="18" rx="4" fill="#2f5bea"/>
+  </g>
+</svg>
